@@ -1,44 +1,47 @@
 /*
 ==============================================================================
 FILE: app.dart
-MODULE: App
-COMPONENT: Application Root
+MODULE: Application
+COMPONENT: Root Application Widget
 ==============================================================================
 
 DESCRIPTION
 -----------
-Defines the root of the CourseMind application.
+Defines the root widget of the CourseMind application.
 
 PURPOSE
 -------
-Acts as the entry point for the widget tree and provides
-application-wide configuration.
+Provides the application's root widget and prepares the widget tree
+for routing, theming, and global state management.
 
 RESPONSIBILITIES
 ----------------
-• Initialize the application.
-• Apply the global theme.
-• Configure application routing.
-• Register dependency injection.
-• Configure localization.
-• Bootstrap global services.
+• Create the root application widget.
+• Wrap the application with Riverpod.
+• Configure MaterialApp.
+• Prepare routing integration.
 
 FUTURE IMPLEMENTATION
 ---------------------
-This file will contain the root MaterialApp (or MaterialApp.router),
-global providers, application theme, and routing configuration.
+Future versions will integrate:
+
+• GoRouter
+• Themes
+• Localization
+• Authentication redirects
 
 DEPENDENCIES
 ------------
-None (Placeholder)
+flutter
+flutter_riverpod
 
 NOTES
 -----
-No Flutter widgets should be implemented during the project skeleton phase.
+This widget should remain lightweight.
 
 STATUS
 ------
-🚧 Placeholder
+🚧 Initial Implementation
 
 AUTHOR
 ------
@@ -46,7 +49,31 @@ CourseMind Development Team
 
 LAST UPDATED
 ------------
-Phase 0 – Enterprise Project Skeleton
+Phase 2 – Public Module
 
 ==============================================================================
 */
+import 'package:coursemind/features/public/splash/screens/splash_screen.dart';
+import 'package:flutter/material.dart';
+//=============================================================================
+// ROOT APPLICATION
+//=============================================================================
+
+//=============================================================================
+// ROOT APPLICATION
+//=============================================================================
+
+class CourseMindApp extends StatelessWidget {
+  const CourseMindApp({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'CourseMind',
+      home: SplashScreen(),
+    );
+  }
+}
