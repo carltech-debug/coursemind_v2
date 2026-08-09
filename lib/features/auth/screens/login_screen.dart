@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/auth_state.dart';
 import '../providers/auth_provider.dart';
+import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
 
 //=============================================================================
@@ -476,27 +477,23 @@ final class _LoginScreenState
                                       ),
                                     ),
                                     GestureDetector(
-                                      onTap:
-                                          isLoading
-                                              ? null
-                                              : () {
-                                                  _showError(
-                                                    'Password reset will be implemented in the next authentication phase.',
-                                                  );
-                                                },
-                                      child:
-                                          const Text(
+                                      onTap: isLoading
+                                          ? null
+                                          : () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      const ForgotPasswordScreen(),
+                                                ),
+                                              );
+                                            },
+                                      child: const Text(
                                         'Forgot password?',
-                                        style:
-                                            TextStyle(
-                                          fontSize:
-                                              14,
-                                          fontWeight:
-                                              FontWeight
-                                                  .w600,
-                                          color:
-                                              LoginTheme
-                                                  .primary,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: LoginTheme.primary,
                                         ),
                                       ),
                                     ),

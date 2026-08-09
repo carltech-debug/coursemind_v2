@@ -11,10 +11,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/auth_state.dart';
 
+//=============================================================================
+// AUTH PROVIDER
+//=============================================================================
+
 final authProvider =
     NotifierProvider<AuthNotifier, AuthState>(
   AuthNotifier.new,
 );
+
+//=============================================================================
+// AUTH NOTIFIER
+//=============================================================================
 
 final class AuthNotifier extends Notifier<AuthState> {
   final FirebaseAuth _firebaseAuth =
@@ -26,7 +34,7 @@ final class AuthNotifier extends Notifier<AuthState> {
   }
 
   //===========================================================================
-  // EMAIL / PASSWORD SIGN-UP
+  // SIGN UP
   //===========================================================================
 
   Future<void> signUp({
@@ -61,7 +69,7 @@ final class AuthNotifier extends Notifier<AuthState> {
   }
 
   //===========================================================================
-  // EMAIL / PASSWORD LOGIN
+  // LOGIN
   //===========================================================================
 
   Future<void> login({
@@ -80,6 +88,39 @@ final class AuthNotifier extends Notifier<AuthState> {
 
       state = const AuthState(
         status: AuthStatus.authenticated,
+      );
+    } on FirebaseAuthException catch (exception) {
+      state = AuthState(
+        status: AuthStatus.error,
+        errorMessage: _getAuthErrorMessage(exception),
+      );
+    } catch (_) {
+      state = const AuthState(
+        status: AuthStatus.error,
+        errorMessage:
+            'Something went wrong. Please try again.',
+      );
+    }
+  }
+
+  //===========================================================================
+  // PASSWORD RESET
+  //===========================================================================
+
+  Future<void> resetPassword({
+    required String email,
+  }) async {
+    state = const AuthState(
+      status: AuthStatus.loading,
+    );
+
+    try {
+      await _firebaseAuth.sendPasswordResetEmail(
+        email: email.trim(),
+      );
+
+      state = const AuthState(
+        status: AuthStatus.passwordResetSent,
       );
     } on FirebaseAuthException catch (exception) {
       state = AuthState(
