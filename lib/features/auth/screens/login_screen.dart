@@ -7,6 +7,10 @@ COMPONENT: Login Screen
 */
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../models/auth_state.dart';
+import '../providers/auth_provider.dart';
 import 'signup_screen.dart';
 
 //=============================================================================
@@ -28,28 +32,32 @@ final class LoginTheme {
 // LOGIN SCREEN
 //=============================================================================
 
-final class LoginScreen extends StatefulWidget {
+final class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({
     super.key,
   });
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() =>
+      _LoginScreenState();
 }
 
 //=============================================================================
 // LOGIN STATE
 //=============================================================================
 
-final class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
+final class _LoginScreenState
+    extends ConsumerState<LoginScreen> {
+  final GlobalKey<FormState> _formKey =
+      GlobalKey<FormState>();
 
-  final _emailController = TextEditingController();
+  final TextEditingController _emailController =
+      TextEditingController();
 
-  final _passwordController = TextEditingController();
+  final TextEditingController _passwordController =
+      TextEditingController();
 
   bool _obscurePassword = true;
-
   bool _rememberMe = false;
 
   @override
@@ -60,23 +68,70 @@ final class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _handleLogin() {
+  //===========================================================================
+  // LOGIN
+  //===========================================================================
+
+  Future<void> _handleLogin() async {
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
 
+    await ref.read(authProvider.notifier).login(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
+
+    if (!mounted) {
+      return;
+    }
+
+    final authState = ref.read(authProvider);
+
+    if (authState.status == AuthStatus.authenticated) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Login successful.'),
+          backgroundColor: LoginTheme.primary,
+        ),
+      );
+
+      Navigator.pop(context);
+      return;
+    }
+
+    if (authState.status == AuthStatus.error) {
+      _showError(
+        authState.errorMessage ??
+            'Unable to log in. Please try again.',
+      );
+    }
+  }
+
+  //===========================================================================
+  // ERROR
+  //===========================================================================
+
+  void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          'Logging in as ${_emailController.text}...',
-        ),
-        backgroundColor: LoginTheme.primary,
+        content: Text(message),
+        backgroundColor: Colors.red.shade700,
       ),
     );
   }
 
+  //===========================================================================
+  // BUILD
+  //===========================================================================
+
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+
+    final bool isLoading =
+        authState.status == AuthStatus.loading;
+
     return Scaffold(
       backgroundColor: LoginTheme.background,
       body: SafeArea(
@@ -94,29 +149,36 @@ final class _LoginScreenState extends State<LoginScreen> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: TextButton.icon(
-                  onPressed: () {
-                    if (Navigator.canPop(context)) {
-                      Navigator.pop(context);
-                    }
-                  },
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          if (Navigator.canPop(context)) {
+                            Navigator.pop(context);
+                          }
+                        },
                   icon: const Icon(
                     Icons.arrow_back,
                     size: 20,
-                    color: LoginTheme.onSurfaceVariant,
+                    color:
+                        LoginTheme.onSurfaceVariant,
                   ),
                   label: const Text(
                     'Back',
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: LoginTheme.onSurfaceVariant,
+                      fontWeight:
+                          FontWeight.w600,
+                      color:
+                          LoginTheme
+                              .onSurfaceVariant,
                     ),
                   ),
                   style: TextButton.styleFrom(
                     padding: EdgeInsets.zero,
                     minimumSize: Size.zero,
                     tapTargetSize:
-                        MaterialTapTargetSize.shrinkWrap,
+                        MaterialTapTargetSize
+                            .shrinkWrap,
                   ),
                 ),
               ),
@@ -128,18 +190,21 @@ final class _LoginScreenState extends State<LoginScreen> {
 
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
+                padding:
+                    const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 24,
                 ),
                 child: Center(
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(
+                    constraints:
+                        const BoxConstraints(
                       maxWidth: 480,
                     ),
                     child: Column(
                       crossAxisAlignment:
-                          CrossAxisAlignment.stretch,
+                          CrossAxisAlignment
+                              .stretch,
                       children: [
                         //=====================================================
                         // BRANDING
@@ -149,90 +214,151 @@ final class _LoginScreenState extends State<LoginScreen> {
                           children: [
                             Row(
                               mainAxisAlignment:
-                                  MainAxisAlignment.center,
+                                  MainAxisAlignment
+                                      .center,
                               children: [
                                 Icon(
                                   Icons.school,
                                   size: 40,
-                                  color: LoginTheme.primary,
+                                  color:
+                                      LoginTheme
+                                          .primary,
                                 ),
-                                SizedBox(width: 8),
+                                SizedBox(
+                                  width: 8,
+                                ),
                                 Text(
                                   'CourseMind',
-                                  style: TextStyle(
+                                  style:
+                                      TextStyle(
                                     fontSize: 24,
-                                    height: 32 / 24,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: -0.5,
-                                    color: Colors.black,
+                                    height:
+                                        32 / 24,
+                                    fontWeight:
+                                        FontWeight
+                                            .bold,
+                                    letterSpacing:
+                                        -0.5,
+                                    color:
+                                        Colors
+                                            .black,
                                   ),
                                 ),
                               ],
                             ),
-                            SizedBox(height: 24),
+                            SizedBox(
+                              height: 24,
+                            ),
                             Text(
                               'Welcome back',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
+                              textAlign:
+                                  TextAlign
+                                      .center,
+                              style:
+                                  TextStyle(
                                 fontSize: 32,
-                                height: 40 / 32,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: -0.32,
-                                color: LoginTheme.onSurface,
+                                height:
+                                    40 / 32,
+                                fontWeight:
+                                    FontWeight
+                                        .bold,
+                                letterSpacing:
+                                    -0.32,
+                                color:
+                                    LoginTheme
+                                        .onSurface,
                               ),
                             ),
-                            SizedBox(height: 8),
+                            SizedBox(
+                              height: 8,
+                            ),
                             Text(
                               'Sign in to continue your learning journey.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
+                              textAlign:
+                                  TextAlign
+                                      .center,
+                              style:
+                                  TextStyle(
                                 fontSize: 16,
-                                height: 24 / 16,
+                                height:
+                                    24 / 16,
                                 color:
-                                    LoginTheme.onSurfaceVariant,
+                                    LoginTheme
+                                        .onSurfaceVariant,
                               ),
                             ),
                           ],
                         ),
 
-                        const SizedBox(height: 40),
+                        const SizedBox(
+                          height: 40,
+                        ),
 
                         //=====================================================
                         // LOGIN CARD
                         //=====================================================
 
                         Container(
-                          padding: const EdgeInsets.all(40),
-                          decoration: BoxDecoration(
-                            color: LoginTheme.surface,
+                          padding:
+                              const EdgeInsets.all(
+                            40,
+                          ),
+                          decoration:
+                              BoxDecoration(
+                            color:
+                                LoginTheme
+                                    .surface,
                             borderRadius:
-                                BorderRadius.circular(12),
+                                BorderRadius
+                                    .circular(
+                              12,
+                            ),
                             border: Border.all(
-                              color: LoginTheme.outlineVariant
-                                  .withValues(alpha: 0.3),
+                              color:
+                                  LoginTheme
+                                      .outlineVariant
+                                      .withValues(
+                                alpha: 0.3,
+                              ),
                             ),
                             boxShadow: const [
                               BoxShadow(
-                                color: Color.fromRGBO(
+                                color:
+                                    Color
+                                        .fromRGBO(
                                   15,
                                   23,
                                   42,
                                   0.05,
                                 ),
-                                offset: Offset(0, 4),
-                                blurRadius: 6,
-                                spreadRadius: -1,
+                                offset:
+                                    Offset(
+                                  0,
+                                  4,
+                                ),
+                                blurRadius:
+                                    6,
+                                spreadRadius:
+                                    -1,
                               ),
                               BoxShadow(
-                                color: Color.fromRGBO(
+                                color:
+                                    Color
+                                        .fromRGBO(
                                   15,
                                   23,
                                   42,
                                   0.1,
                                 ),
-                                offset: Offset(0, 10),
-                                blurRadius: 15,
-                                spreadRadius: -3,
+                                offset:
+                                    Offset(
+                                  0,
+                                  10,
+                                ),
+                                blurRadius:
+                                    15,
+                                spreadRadius:
+                                    -3,
                               ),
                             ],
                           ),
@@ -240,52 +366,73 @@ final class _LoginScreenState extends State<LoginScreen> {
                             key: _formKey,
                             child: Column(
                               crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                                  CrossAxisAlignment
+                                      .start,
                               children: [
                                 //=================================================
                                 // EMAIL
                                 //=================================================
 
                                 const Padding(
-                                  padding: EdgeInsets.only(
+                                  padding:
+                                      EdgeInsets
+                                          .only(
                                     left: 4,
                                     bottom: 8,
                                   ),
-                                  child: Text(
+                                  child:
+                                      Text(
                                     'Email Address',
-                                    style: TextStyle(
-                                      fontSize: 14,
+                                    style:
+                                        TextStyle(
+                                      fontSize:
+                                          14,
                                       fontWeight:
-                                          FontWeight.w600,
+                                          FontWeight
+                                              .w600,
                                       color:
-                                          LoginTheme.onSurface,
+                                          LoginTheme
+                                              .onSurface,
                                     ),
                                   ),
                                 ),
 
                                 TextFormField(
-                                  controller: _emailController,
+                                  controller:
+                                      _emailController,
                                   keyboardType:
-                                      TextInputType.emailAddress,
-                                  style: const TextStyle(
-                                    fontSize: 16,
+                                      TextInputType
+                                          .emailAddress,
+                                  style:
+                                      const TextStyle(
+                                    fontSize:
+                                        16,
                                     color:
-                                        LoginTheme.onSurface,
+                                        LoginTheme
+                                            .onSurface,
                                   ),
                                   decoration:
                                       _inputDecoration(
                                     hintText:
                                         'student@university.edu',
-                                    prefixIcon: Icons
-                                        .mail_outline,
+                                    prefixIcon:
+                                        Icons
+                                            .mail_outline,
                                   ),
-                                  validator: (value) {
-                                    if (value == null ||
-                                        value.trim().isEmpty) {
+                                  validator:
+                                      (value) {
+                                    if (value ==
+                                            null ||
+                                        value
+                                            .trim()
+                                            .isEmpty) {
                                       return 'Enter your email address';
                                     }
 
-                                    if (!value.contains('@')) {
+                                    if (!value
+                                        .contains(
+                                      '@',
+                                    )) {
                                       return 'Enter a valid email address';
                                     }
 
@@ -293,7 +440,9 @@ final class _LoginScreenState extends State<LoginScreen> {
                                   },
                                 ),
 
-                                const SizedBox(height: 24),
+                                const SizedBox(
+                                  height: 24,
+                                ),
 
                                 //=================================================
                                 // PASSWORD LABEL
@@ -306,35 +455,57 @@ final class _LoginScreenState extends State<LoginScreen> {
                                   children: [
                                     const Padding(
                                       padding:
-                                          EdgeInsets.only(left: 4),
-                                      child: Text(
+                                          EdgeInsets
+                                              .only(
+                                        left: 4,
+                                      ),
+                                      child:
+                                          Text(
                                         'Password',
-                                        style: TextStyle(
-                                          fontSize: 14,
+                                        style:
+                                            TextStyle(
+                                          fontSize:
+                                              14,
                                           fontWeight:
-                                              FontWeight.w600,
-                                          color: LoginTheme
-                                              .onSurface,
+                                              FontWeight
+                                                  .w600,
+                                          color:
+                                              LoginTheme
+                                                  .onSurface,
                                         ),
                                       ),
                                     ),
                                     GestureDetector(
-                                      onTap: () {},
-                                      child: const Text(
+                                      onTap:
+                                          isLoading
+                                              ? null
+                                              : () {
+                                                  _showError(
+                                                    'Password reset will be implemented in the next authentication phase.',
+                                                  );
+                                                },
+                                      child:
+                                          const Text(
                                         'Forgot password?',
-                                        style: TextStyle(
-                                          fontSize: 14,
+                                        style:
+                                            TextStyle(
+                                          fontSize:
+                                              14,
                                           fontWeight:
-                                              FontWeight.w600,
+                                              FontWeight
+                                                  .w600,
                                           color:
-                                              LoginTheme.primary,
+                                              LoginTheme
+                                                  .primary,
                                         ),
                                       ),
                                     ),
                                   ],
                                 ),
 
-                                const SizedBox(height: 8),
+                                const SizedBox(
+                                  height: 8,
+                                ),
 
                                 //=================================================
                                 // PASSWORD
@@ -345,37 +516,53 @@ final class _LoginScreenState extends State<LoginScreen> {
                                       _passwordController,
                                   obscureText:
                                       _obscurePassword,
-                                  style: const TextStyle(
-                                    fontSize: 16,
+                                  style:
+                                      const TextStyle(
+                                    fontSize:
+                                        16,
                                     color:
-                                        LoginTheme.onSurface,
+                                        LoginTheme
+                                            .onSurface,
                                   ),
                                   decoration:
                                       _inputDecoration(
-                                    hintText: '••••••••',
+                                    hintText:
+                                        '••••••••',
                                     prefixIcon:
-                                        Icons.lock_outline,
-                                    suffixIcon: IconButton(
-                                      icon: Icon(
+                                        Icons
+                                            .lock_outline,
+                                    suffixIcon:
+                                        IconButton(
+                                      icon:
+                                          Icon(
                                         _obscurePassword
                                             ? Icons
                                                 .visibility_outlined
                                             : Icons
                                                 .visibility_off_outlined,
                                         color:
-                                            LoginTheme.outline,
+                                            LoginTheme
+                                                .outline,
                                       ),
-                                      onPressed: () {
-                                        setState(() {
-                                          _obscurePassword =
-                                              !_obscurePassword;
-                                        });
-                                      },
+                                      onPressed:
+                                          isLoading
+                                              ? null
+                                              : () {
+                                                  setState(
+                                                    () {
+                                                      _obscurePassword =
+                                                          !_obscurePassword;
+                                                    },
+                                                  );
+                                                },
                                     ),
                                   ),
-                                  validator: (value) {
-                                    if (value == null ||
-                                        value.isEmpty) {
+                                  validator:
+                                      (value) {
+                                    if (value ==
+                                            null ||
+                                        value
+                                            .isEmpty) {
                                       return 'Enter your password';
                                     }
 
@@ -383,7 +570,9 @@ final class _LoginScreenState extends State<LoginScreen> {
                                   },
                                 ),
 
-                                const SizedBox(height: 24),
+                                const SizedBox(
+                                  height: 24,
+                                ),
 
                                 //=================================================
                                 // REMEMBER ME
@@ -394,99 +583,171 @@ final class _LoginScreenState extends State<LoginScreen> {
                                     SizedBox(
                                       height: 24,
                                       width: 24,
-                                      child: Checkbox(
-                                        value: _rememberMe,
+                                      child:
+                                          Checkbox(
+                                        value:
+                                            _rememberMe,
                                         activeColor:
-                                            LoginTheme.primary,
+                                            LoginTheme
+                                                .primary,
                                         shape:
                                             RoundedRectangleBorder(
                                           borderRadius:
                                               BorderRadius
-                                                  .circular(4),
+                                                  .circular(
+                                            4,
+                                          ),
                                         ),
-                                        side: const BorderSide(
-                                          color: LoginTheme
-                                              .outlineVariant,
+                                        side:
+                                            const BorderSide(
+                                          color:
+                                              LoginTheme
+                                                  .outlineVariant,
                                         ),
-                                        onChanged: (value) {
-                                          setState(() {
-                                            _rememberMe =
-                                                value ?? false;
-                                          });
-                                        },
+                                        onChanged:
+                                            isLoading
+                                                ? null
+                                                : (value) {
+                                                    setState(
+                                                      () {
+                                                        _rememberMe =
+                                                            value ??
+                                                                false;
+                                                      },
+                                                    );
+                                                  },
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
+                                    const SizedBox(
+                                      width: 8,
+                                    ),
                                     GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          _rememberMe =
-                                              !_rememberMe;
-                                        });
-                                      },
-                                      child: const Text(
+                                      onTap:
+                                          isLoading
+                                              ? null
+                                              : () {
+                                                  setState(
+                                                    () {
+                                                      _rememberMe =
+                                                          !_rememberMe;
+                                                    },
+                                                  );
+                                                },
+                                      child:
+                                          const Text(
                                         'Remember me for 30 days',
-                                        style: TextStyle(
-                                          fontSize: 14,
+                                        style:
+                                            TextStyle(
+                                          fontSize:
+                                              14,
                                           fontWeight:
-                                              FontWeight.w600,
-                                          color: LoginTheme
-                                              .onSurfaceVariant,
+                                              FontWeight
+                                                  .w600,
+                                          color:
+                                              LoginTheme
+                                                  .onSurfaceVariant,
                                         ),
                                       ),
                                     ),
                                   ],
                                 ),
 
-                                const SizedBox(height: 28),
+                                const SizedBox(
+                                  height: 28,
+                                ),
 
                                 //=================================================
                                 // LOGIN BUTTON
                                 //=================================================
 
                                 SizedBox(
-                                  width: double.infinity,
+                                  width:
+                                      double.infinity,
                                   height: 56,
-                                  child: ElevatedButton(
-                                    onPressed: _handleLogin,
+                                  child:
+                                      ElevatedButton(
+                                    onPressed:
+                                        isLoading
+                                            ? null
+                                            : _handleLogin,
                                     style:
-                                        ElevatedButton.styleFrom(
+                                        ElevatedButton
+                                            .styleFrom(
                                       backgroundColor:
-                                          LoginTheme.primary,
+                                          LoginTheme
+                                              .primary,
+                                      disabledBackgroundColor:
+                                          LoginTheme
+                                              .primary
+                                              .withValues(
+                                        alpha: 0.5,
+                                      ),
                                       foregroundColor:
-                                          Colors.white,
-                                      elevation: 0,
+                                          Colors
+                                              .white,
+                                      elevation:
+                                          0,
                                       shape:
                                           RoundedRectangleBorder(
                                         borderRadius:
-                                            BorderRadius.circular(
+                                            BorderRadius
+                                                .circular(
                                           8,
                                         ),
                                       ),
                                     ),
-                                    child: const Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          'Log In',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight:
-                                                FontWeight.w600,
+                                    child: isLoading
+                                        ? const SizedBox(
+                                            width:
+                                                20,
+                                            height:
+                                                20,
+                                            child:
+                                                CircularProgressIndicator(
+                                              strokeWidth:
+                                                  2,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<
+                                                      Color>(
+                                                Colors
+                                                    .white,
+                                              ),
+                                            ),
+                                          )
+                                        : const Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment
+                                                    .center,
+                                            children: [
+                                              Text(
+                                                'Log In',
+                                                style:
+                                                    TextStyle(
+                                                  fontSize:
+                                                      14,
+                                                  fontWeight:
+                                                      FontWeight
+                                                          .w600,
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                width:
+                                                    8,
+                                              ),
+                                              Icon(
+                                                Icons
+                                                    .arrow_forward,
+                                                size:
+                                                    18,
+                                              ),
+                                            ],
                                           ),
-                                        ),
-                                        SizedBox(width: 8),
-                                        Icon(
-                                          Icons.arrow_forward,
-                                          size: 18,
-                                        ),
-                                      ],
-                                    ),
                                   ),
                                 ),
 
-                                const SizedBox(height: 24),
+                                const SizedBox(
+                                  height: 24,
+                                ),
 
                                 //=================================================
                                 // OR DIVIDER
@@ -495,90 +756,130 @@ final class _LoginScreenState extends State<LoginScreen> {
                                 Row(
                                   children: [
                                     Expanded(
-                                      child: Container(
-                                        height: 1,
-                                        color: LoginTheme
-                                            .outlineVariant
-                                            .withValues(
-                                          alpha: 0.3,
+                                      child:
+                                          Container(
+                                        height:
+                                            1,
+                                        color:
+                                            LoginTheme
+                                                .outlineVariant
+                                                .withValues(
+                                          alpha:
+                                              0.3,
                                         ),
                                       ),
                                     ),
                                     const Padding(
                                       padding:
-                                          EdgeInsets.symmetric(
-                                        horizontal: 16,
+                                          EdgeInsets
+                                              .symmetric(
+                                        horizontal:
+                                            16,
                                       ),
-                                      child: Text(
+                                      child:
+                                          Text(
                                         'OR',
-                                        style: TextStyle(
-                                          fontSize: 12,
+                                        style:
+                                            TextStyle(
+                                          fontSize:
+                                              12,
                                           color:
-                                              LoginTheme.outline,
+                                              LoginTheme
+                                                  .outline,
                                         ),
                                       ),
                                     ),
                                     Expanded(
-                                      child: Container(
-                                        height: 1,
-                                        color: LoginTheme
-                                            .outlineVariant
-                                            .withValues(
-                                          alpha: 0.3,
+                                      child:
+                                          Container(
+                                        height:
+                                            1,
+                                        color:
+                                            LoginTheme
+                                                .outlineVariant
+                                                .withValues(
+                                          alpha:
+                                              0.3,
                                         ),
                                       ),
                                     ),
                                   ],
                                 ),
 
-                                const SizedBox(height: 24),
+                                const SizedBox(
+                                  height: 24,
+                                ),
 
                                 //=================================================
                                 // GOOGLE BUTTON
                                 //=================================================
 
                                 SizedBox(
-                                  width: double.infinity,
+                                  width:
+                                      double.infinity,
                                   height: 56,
-                                  child: OutlinedButton(
-                                    onPressed: () {},
+                                  child:
+                                      OutlinedButton(
+                                    onPressed:
+                                        isLoading
+                                            ? null
+                                            : () {
+                                                _showError(
+                                                  'Google Sign-In will be implemented in the next authentication phase.',
+                                                );
+                                              },
                                     style:
-                                        OutlinedButton.styleFrom(
+                                        OutlinedButton
+                                            .styleFrom(
                                       backgroundColor:
                                           LoginTheme
                                               .fieldBackground,
                                       foregroundColor:
-                                          LoginTheme.onSurface,
-                                      side: const BorderSide(
-                                        color: LoginTheme
-                                            .outlineVariant,
+                                          LoginTheme
+                                              .onSurface,
+                                      side:
+                                          const BorderSide(
+                                        color:
+                                            LoginTheme
+                                                .outlineVariant,
                                       ),
                                       shape:
                                           RoundedRectangleBorder(
                                         borderRadius:
-                                            BorderRadius.circular(
+                                            BorderRadius
+                                                .circular(
                                           8,
                                         ),
                                       ),
                                     ),
-                                    child: const Row(
+                                    child:
+                                        const Row(
                                       mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                          MainAxisAlignment
+                                              .center,
                                       children: [
                                         Icon(
                                           Icons
                                               .account_circle_outlined,
-                                          size: 20,
-                                          color: LoginTheme
-                                              .onSurfaceVariant,
+                                          size:
+                                              20,
+                                          color:
+                                              LoginTheme
+                                                  .onSurfaceVariant,
                                         ),
-                                        SizedBox(width: 16),
+                                        SizedBox(
+                                          width:
+                                              16,
+                                        ),
                                         Text(
                                           'Continue with Google',
-                                          style: TextStyle(
-                                            fontSize: 14,
+                                          style:
+                                              TextStyle(
+                                            fontSize:
+                                                14,
                                             fontWeight:
-                                                FontWeight.w600,
+                                                FontWeight
+                                                    .w600,
                                           ),
                                         ),
                                       ],
@@ -590,7 +891,9 @@ final class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
 
-                        const SizedBox(height: 40),
+                        const SizedBox(
+                          height: 40,
+                        ),
 
                         //=====================================================
                         // CREATE ACCOUNT
@@ -598,38 +901,54 @@ final class _LoginScreenState extends State<LoginScreen> {
 
                         Row(
                           mainAxisAlignment:
-                              MainAxisAlignment.center,
+                              MainAxisAlignment
+                                  .center,
                           children: [
                             const Text(
                               "Don't have an account? ",
-                              style: TextStyle(
+                              style:
+                                  TextStyle(
                                 fontSize: 16,
                                 color:
-                                    LoginTheme.onSurfaceVariant,
+                                    LoginTheme
+                                        .onSurfaceVariant,
                               ),
                             ),
                             GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const SignUpScreen(),
-                                  ),
-                                );
-                              },
-                              child: const Text(
+                              onTap: isLoading
+                                  ? null
+                                  : () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (_) =>
+                                                  const SignUpScreen(),
+                                        ),
+                                      );
+                                    },
+                              child:
+                                  const Text(
                                 'Create one',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: LoginTheme.primary,
+                                style:
+                                    TextStyle(
+                                  fontSize:
+                                      16,
+                                  fontWeight:
+                                      FontWeight
+                                          .bold,
+                                  color:
+                                      LoginTheme
+                                          .primary,
                                 ),
                               ),
                             ),
                           ],
                         ),
 
-                        const SizedBox(height: 24),
+                        const SizedBox(
+                          height: 24,
+                        ),
                       ],
                     ),
                   ),
@@ -642,70 +961,86 @@ final class _LoginScreenState extends State<LoginScreen> {
             //=================================================================
 
             Padding(
-              padding: const EdgeInsets.symmetric(
+              padding:
+                  const EdgeInsets.symmetric(
                 horizontal: 24,
                 vertical: 16,
               ),
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(
+                  constraints:
+                      const BoxConstraints(
                     maxWidth: 1280,
                   ),
                   child: LayoutBuilder(
-                    builder: (context, constraints) {
+                    builder: (
+                      context,
+                      constraints,
+                    ) {
                       final isMobile =
-                          constraints.maxWidth < 600;
+                          constraints.maxWidth <
+                              600;
 
                       return Flex(
                         direction: isMobile
                             ? Axis.vertical
                             : Axis.horizontal,
                         mainAxisAlignment:
-                            MainAxisAlignment.spaceBetween,
+                            MainAxisAlignment
+                                .spaceBetween,
                         children: [
                           Row(
                             mainAxisAlignment:
-                                MainAxisAlignment.center,
+                                MainAxisAlignment
+                                    .center,
                             children: [
                               GestureDetector(
                                 onTap: () {},
-                                child: const Text(
+                                child:
+                                    const Text(
                                   'Privacy Policy',
-                                  style: TextStyle(
-                                    fontSize: 12,
+                                  style:
+                                      TextStyle(
+                                    fontSize:
+                                        12,
                                     color:
-                                        LoginTheme.outline,
+                                        LoginTheme
+                                            .outline,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 24),
+                              const SizedBox(
+                                width: 24,
+                              ),
                               GestureDetector(
-                                 onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => const SignUpScreen(),
-                                      ),
-                                    );
-                                  },
-                                child: const Text(
+                                onTap: () {},
+                                child:
+                                    const Text(
                                   'Terms of Service',
-                                  style: TextStyle(
-                                    fontSize: 12,
+                                  style:
+                                      TextStyle(
+                                    fontSize:
+                                        12,
                                     color:
-                                        LoginTheme.outline,
+                                        LoginTheme
+                                            .outline,
                                   ),
                                 ),
                               ),
                             ],
                           ),
                           if (isMobile)
-                            const SizedBox(height: 16),
+                            const SizedBox(
+                              height: 16,
+                            ),
                           const Text(
                             '© 2024 CourseMind EdTech. All rights reserved.',
-                            style: TextStyle(
+                            style:
+                                TextStyle(
                               fontSize: 12,
-                              color: LoginTheme.outline,
+                              color:
+                                  LoginTheme
+                                      .outline,
                             ),
                           ),
                         ],
@@ -721,6 +1056,10 @@ final class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  //===========================================================================
+  // INPUT DECORATION
+  //===========================================================================
+
   InputDecoration _inputDecoration({
     required String hintText,
     required IconData prefixIcon,
@@ -728,7 +1067,8 @@ final class _LoginScreenState extends State<LoginScreen> {
   }) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: const TextStyle(
+      hintStyle:
+          const TextStyle(
         color: LoginTheme.outline,
         fontSize: 16,
       ),
@@ -738,27 +1078,58 @@ final class _LoginScreenState extends State<LoginScreen> {
       ),
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: LoginTheme.fieldBackground,
-      contentPadding: const EdgeInsets.symmetric(
+      fillColor:
+          LoginTheme.fieldBackground,
+      contentPadding:
+          const EdgeInsets.symmetric(
         vertical: 16,
         horizontal: 16,
       ),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(
-          color: LoginTheme.outlineVariant,
+        borderRadius:
+            BorderRadius.circular(8),
+        borderSide:
+            const BorderSide(
+          color:
+              LoginTheme.outlineVariant,
         ),
       ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(
-          color: LoginTheme.outlineVariant,
+      enabledBorder:
+          OutlineInputBorder(
+        borderRadius:
+            BorderRadius.circular(8),
+        borderSide:
+            const BorderSide(
+          color:
+              LoginTheme.outlineVariant,
         ),
       ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(
+      focusedBorder:
+          OutlineInputBorder(
+        borderRadius:
+            BorderRadius.circular(8),
+        borderSide:
+            const BorderSide(
           color: LoginTheme.primary,
+          width: 2,
+        ),
+      ),
+      errorBorder:
+          OutlineInputBorder(
+        borderRadius:
+            BorderRadius.circular(8),
+        borderSide:
+            const BorderSide(
+          color: Colors.red,
+        ),
+      ),
+      focusedErrorBorder:
+          OutlineInputBorder(
+        borderRadius:
+            BorderRadius.circular(8),
+        borderSide:
+            const BorderSide(
+          color: Colors.red,
           width: 2,
         ),
       ),

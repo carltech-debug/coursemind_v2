@@ -4,51 +4,11 @@ FILE: app_initializer.dart
 MODULE: Application Bootstrap
 COMPONENT: Application Initializer
 ==============================================================================
-
-DESCRIPTION
------------
-Initializes all application-wide services before CourseMind becomes
-available to the user.
-
-PURPOSE
--------
-Executes startup tasks in the correct order.
-
-RESPONSIBILITIES
-----------------
-• Initialize Firebase.
-• Initialize local storage.
-• Load environment configuration.
-• Prepare shared services.
-
-FUTURE IMPLEMENTATION
----------------------
-Initialization will expand as new infrastructure is introduced.
-
-DEPENDENCIES
-------------
-app_startup_result.dart
-
-NOTES
------
-Initialization tasks should always execute sequentially unless
-parallel execution is proven safe.
-
-STATUS
-------
-🚧 Initial Implementation
-
-AUTHOR
-------
-CourseMind Development Team
-
-LAST UPDATED
-------------
-Phase 2 – Public Module
-
-==============================================================================
 */
 
+import 'package:firebase_core/firebase_core.dart';
+
+import '../../firebase_options.dart';
 import 'app_startup_result.dart';
 
 //=============================================================================
@@ -56,32 +16,28 @@ import 'app_startup_result.dart';
 //=============================================================================
 
 final class AppInitializer {
-  /// Executes application initialization.
+  /// Executes application-wide initialization.
   Future<AppStartupResult> initialize() async {
     try {
       // ===============================================================
       // STEP 1
-      // Load Environment
-      // ===============================================================
-
-      await Future<void>.delayed(Duration.zero);
-
-      // ===============================================================
-      // STEP 2
       // Initialize Firebase
       // ===============================================================
 
-      // Implemented in upcoming phase.
+      await Firebase.initializeApp(
+        options:
+            DefaultFirebaseOptions.currentPlatform,
+      );
 
       // ===============================================================
-      // STEP 3
+      // STEP 2
       // Initialize Local Storage
       // ===============================================================
 
       // Implemented in upcoming phase.
 
       // ===============================================================
-      // STEP 4
+      // STEP 3
       // Prepare Application
       // ===============================================================
 
