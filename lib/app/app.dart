@@ -53,6 +53,7 @@ Phase 2 – Public Module
 
 ==============================================================================
 */
+import 'package:coursemind/app/routing/auth_action_handler.dart';
 import 'package:coursemind/features/public/splash/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 //=============================================================================
@@ -73,7 +74,9 @@ class CourseMindApp extends StatelessWidget {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'CourseMind',
-      home: SplashScreen(),
+      home: AuthActionHandler(
+        child: SplashScreen(),
+      ),
     );
   }
 }

@@ -6,9 +6,13 @@ COMPONENT: Login Screen
 ==============================================================================
 */
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../student/dashboard/presentation/screens/student_dashboard_screen.dart';
+import '../../student/profile/presentation/controllers/profile_controller.dart';
+import '../../student/profile/presentation/screens/profile_setup_screen.dart';
 import '../models/auth_state.dart';
 import '../providers/auth_provider.dart';
 import 'forgot_password_screen.dart';
@@ -89,15 +93,44 @@ final class _LoginScreenState
 
     final authState = ref.read(authProvider);
 
-    if (authState.status == AuthStatus.authenticated) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Login successful.'),
-          backgroundColor: LoginTheme.primary,
-        ),
-      );
+    if (authState.status ==
+        AuthStatus.authenticated) {
+      final user =
+          FirebaseAuth.instance.currentUser;
 
-      Navigator.pop(context);
+      if (user == null) {
+        _showError(
+          'Unable to identify your account. Please try again.',
+        );
+        return;
+      }
+
+      final bool hasProfile = await ref
+          .read(profileControllerProvider.notifier)
+          .profileExists(user.uid);
+
+      if (!mounted) {
+        return;
+      }
+
+      if (hasProfile) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                const StudentDashboardScreen(),
+          ),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                const ProfileSetupScreen(),
+          ),
+        );
+      }
+
       return;
     }
 

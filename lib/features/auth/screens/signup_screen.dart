@@ -9,6 +9,7 @@ COMPONENT: Sign-Up Screen
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../student/profile/presentation/screens/profile_setup_screen.dart';
 import '../models/auth_state.dart';
 import '../providers/auth_provider.dart';
 import 'login_screen.dart';
@@ -234,16 +235,16 @@ final class _SignUpScreenState
 
     final authState = ref.read(authProvider);
 
-    if (authState.status == AuthStatus.authenticated) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Account created successfully.',
-          ),
+    if (authState.status ==
+        AuthStatus.authenticated) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) =>
+              const ProfileSetupScreen(),
         ),
       );
 
-      Navigator.pop(context);
       return;
     }
 

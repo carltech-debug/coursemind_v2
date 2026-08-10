@@ -12,6 +12,7 @@ enum AuthStatus {
   authenticated,
   unauthenticated,
   passwordResetSent,
+  passwordResetCompleted,
   error,
 }
 
