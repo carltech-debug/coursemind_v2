@@ -1,49 +1,106 @@
-/*
-==============================================================================
-FILE: app_spacing.dart
-MODULE: Theme
-COMPONENT: Layout Spacing
-==============================================================================
+import 'package:flutter/material.dart';
 
-DESCRIPTION
------------
-Defines standard spacing values used throughout the application.
+/// ============================================================================
+/// COURSEMIND — APPLICATION SPACING SYSTEM
+/// ============================================================================
+///
+/// Centralized spacing, padding, layout, and radius values used throughout
+/// CourseMind.
+///
+/// Widgets should use these constants instead of arbitrary spacing values.
+/// ============================================================================
 
-PURPOSE
--------
-Promotes consistent layouts and eliminates arbitrary spacing values.
+abstract final class AppSpacing {
+  // ===========================================================================
+  // BASE SPACING SCALE
+  // ===========================================================================
 
-RESPONSIBILITIES
-----------------
-• Define spacing scale.
-• Define standard padding.
-• Define standard margins.
-• Define border radius values.
-• Improve layout consistency.
+  static const double xs = 4.0;
+  static const double sm = 8.0;
+  static const double md = 16.0;
+  static const double lg = 24.0;
+  static const double xl = 32.0;
+  static const double xxl = 40.0;
+  static const double xxxl = 48.0;
+  static const double huge = 64.0;
 
-FUTURE IMPLEMENTATION
----------------------
-This file will contain reusable spacing constants.
+  // ===========================================================================
+  // COMMON PADDING
+  // ===========================================================================
 
-DEPENDENCIES
-------------
-None (Placeholder)
+  static const EdgeInsets paddingXs = EdgeInsets.all(xs);
+  static const EdgeInsets paddingSm = EdgeInsets.all(sm);
+  static const EdgeInsets paddingMd = EdgeInsets.all(md);
+  static const EdgeInsets paddingLg = EdgeInsets.all(lg);
+  static const EdgeInsets paddingXl = EdgeInsets.all(xl);
 
-NOTES
------
-Widgets should use these predefined spacing values.
+  // ===========================================================================
+  // HORIZONTAL PADDING
+  // ===========================================================================
 
-STATUS
-------
-🚧 Placeholder
+  static const EdgeInsets horizontalSm =
+      EdgeInsets.symmetric(horizontal: sm);
 
-AUTHOR
-------
-CourseMind Development Team
+  static const EdgeInsets horizontalMd =
+      EdgeInsets.symmetric(horizontal: md);
 
-LAST UPDATED
-------------
-Phase 0 – Enterprise Project Skeleton
+  static const EdgeInsets horizontalLg =
+      EdgeInsets.symmetric(horizontal: lg);
 
-==============================================================================
-*/
+  static const EdgeInsets horizontalXl =
+      EdgeInsets.symmetric(horizontal: xl);
+
+  // ===========================================================================
+  // VERTICAL PADDING
+  // ===========================================================================
+
+  static const EdgeInsets verticalSm =
+      EdgeInsets.symmetric(vertical: sm);
+
+  static const EdgeInsets verticalMd =
+      EdgeInsets.symmetric(vertical: md);
+
+  static const EdgeInsets verticalLg =
+      EdgeInsets.symmetric(vertical: lg);
+
+  static const EdgeInsets verticalXl =
+      EdgeInsets.symmetric(vertical: xl);
+
+  // ===========================================================================
+  // BORDER RADIUS
+  // ===========================================================================
+
+  static const double radiusSm = 4.0;
+  static const double radiusMd = 8.0;
+  static const double radiusLg = 12.0;
+  static const double radiusXl = 16.0;
+  static const double radiusXxl = 20.0;
+  static const double radiusRound = 999.0;
+
+  // ===========================================================================
+  // COMMON BORDER RADIUS OBJECTS
+  // ===========================================================================
+
+  static final BorderRadius borderRadiusSm =
+      BorderRadius.circular(radiusSm);
+
+  static final BorderRadius borderRadiusMd =
+      BorderRadius.circular(radiusMd);
+
+  static final BorderRadius borderRadiusLg =
+      BorderRadius.circular(radiusLg);
+
+  static final BorderRadius borderRadiusXl =
+      BorderRadius.circular(radiusXl);
+
+  static final BorderRadius borderRadiusRound =
+      BorderRadius.circular(radiusRound);
+
+  // ===========================================================================
+  // DASHBOARD / LARGE LAYOUT
+  // ===========================================================================
+
+  static const double dashboardSidebarWidth = 256.0;
+  static const double dashboardHeaderHeight = 64.0;
+  static const double dashboardMaxWidth = 1280.0;
+}

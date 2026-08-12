@@ -17,23 +17,9 @@ for routing, theming, and global state management.
 RESPONSIBILITIES
 ----------------
 • Create the root application widget.
-• Wrap the application with Riverpod.
 • Configure MaterialApp.
+• Apply the global CourseMind theme.
 • Prepare routing integration.
-
-FUTURE IMPLEMENTATION
----------------------
-Future versions will integrate:
-
-• GoRouter
-• Themes
-• Localization
-• Authentication redirects
-
-DEPENDENCIES
-------------
-flutter
-flutter_riverpod
 
 NOTES
 -----
@@ -41,24 +27,19 @@ This widget should remain lightweight.
 
 STATUS
 ------
-🚧 Initial Implementation
+Active
 
 AUTHOR
 ------
 CourseMind Development Team
 
-LAST UPDATED
-------------
-Phase 2 – Public Module
-
 ==============================================================================
 */
+
 import 'package:coursemind/app/routing/auth_action_handler.dart';
+import 'package:coursemind/app/theme/app_theme.dart';
 import 'package:coursemind/features/public/splash/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
-//=============================================================================
-// ROOT APPLICATION
-//=============================================================================
 
 //=============================================================================
 // ROOT APPLICATION
@@ -71,10 +52,14 @@ class CourseMindApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'CourseMind',
-      home: AuthActionHandler(
+
+      // Global application theme.
+      theme: AppTheme.light,
+
+      home: const AuthActionHandler(
         child: SplashScreen(),
       ),
     );
