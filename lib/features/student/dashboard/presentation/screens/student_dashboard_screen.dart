@@ -11,15 +11,20 @@ DESCRIPTION
 -----------
 Root screen for the Student Dashboard.
 
-The dashboard obtains the authenticated student's profile through the
-existing ProfileController and UserProfile architecture.
-
 RESPONSIBILITIES
 ----------------
-• Obtain the authenticated Firebase user.
-• Request the user's profile through ProfileController.
-• React to loading, error, and successful profile states.
+• Obtain the authenticated student's profile.
+• Load the profile through the existing ProfileController.
+• Provide responsive desktop and tablet dashboard navigation.
 • Compose the dashboard presentation widgets.
+
+RESPONSIVE BEHAVIOR
+-------------------
+Desktop:
+    Uses the existing left DashboardSidebar.
+
+Tablet / smaller layouts:
+    Removes the sidebar and uses DashboardNavigation at the top.
 
 DATA STATUS
 -----------
@@ -28,9 +33,6 @@ Profile information:
 
 Dashboard learning data:
     Presentation placeholders at this stage.
-
-The individual dashboard widgets are intentionally separated from the
-data/repository layer and will be connected to real learning data later.
 
 ==============================================================================
 */
@@ -42,6 +44,7 @@ import 'package:coursemind/features/student/dashboard/presentation/widgets/ai_tu
 import 'package:coursemind/features/student/dashboard/presentation/widgets/continue_learning_card.dart';
 import 'package:coursemind/features/student/dashboard/presentation/widgets/dashboard_greeting.dart';
 import 'package:coursemind/features/student/dashboard/presentation/widgets/dashboard_header.dart';
+import 'package:coursemind/features/student/dashboard/presentation/widgets/dashboard_navigation.dart';
 import 'package:coursemind/features/student/dashboard/presentation/widgets/dashboard_sidebar.dart';
 import 'package:coursemind/features/student/dashboard/presentation/widgets/my_courses_section.dart';
 import 'package:coursemind/features/student/dashboard/presentation/widgets/recent_materials_section.dart';
@@ -50,6 +53,12 @@ import 'package:coursemind/features/student/profile/presentation/controllers/pro
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+//=============================================================================
+// RESPONSIVE BREAKPOINT
+//=============================================================================
+
+const double _desktopBreakpoint = 1100;
 
 //=============================================================================
 // STUDENT DASHBOARD SCREEN
@@ -115,7 +124,17 @@ final class _StudentDashboardScreenState
               return _buildProfileUnavailableState();
             }
 
-            return _buildDashboard(profile);
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final bool isDesktop =
+                    constraints.maxWidth >= _desktopBreakpoint;
+
+                return _buildDashboard(
+                  profile,
+                  isDesktop: isDesktop,
+                );
+              },
+            );
           },
         ),
       ),
@@ -126,12 +145,27 @@ final class _StudentDashboardScreenState
   // DASHBOARD
   //===========================================================================
 
-  Widget _buildDashboard(UserProfile profile) {
+  Widget _buildDashboard(
+    UserProfile profile, {
+    required bool isDesktop,
+  }) {
+    if (isDesktop) {
+      return _buildDesktopDashboard(profile);
+    }
+
+    return _buildTabletDashboard(profile);
+  }
+
+  //===========================================================================
+  // DESKTOP DASHBOARD
+  //===========================================================================
+
+  Widget _buildDesktopDashboard(UserProfile profile) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // =====================================================================
-        // SIDEBAR
+        // DESKTOP SIDEBAR
         // =====================================================================
 
         DashboardSidebar(
@@ -144,109 +178,247 @@ final class _StudentDashboardScreenState
         ),
 
         // =====================================================================
-        // MAIN CONTENT
+        // DESKTOP CONTENT
         // =====================================================================
 
         Expanded(
-          child: SingleChildScrollView(
-            padding: AppSpacing.paddingLg,
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: AppSpacing.dashboardMaxWidth,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ==========================================================
-                    // HEADER
-                    // ==========================================================
-
-                    const DashboardHeader(),
-
-                    const SizedBox(
-                      height: AppSpacing.xl,
-                    ),
-
-                    // ==========================================================
-                    // GREETING
-                    // ==========================================================
-
-                    DashboardGreeting(
-                      profile: profile,
-                    ),
-
-                    const SizedBox(
-                      height: AppSpacing.xl,
-                    ),
-
-                    // ==========================================================
-                    // CONTINUE LEARNING
-                    // ==========================================================
-
-                    const ContinueLearningCard(),
-
-                    const SizedBox(
-                      height: AppSpacing.lg,
-                    ),
-
-                    // ==========================================================
-                    // AI TUTOR
-                    // ==========================================================
-
-                    AiTutorCard(
-                      onPressed: _openAiTutor,
-                    ),
-
-                    const SizedBox(
-                      height: AppSpacing.xl,
-                    ),
-
-                    // ==========================================================
-                    // MY COURSES
-                    // ==========================================================
-
-                    MyCoursesSection(
-                      onCourseSelected: _openCourse,
-                    ),
-
-                    const SizedBox(
-                      height: AppSpacing.xl,
-                    ),
-
-                    // ==========================================================
-                    // RECENT MATERIALS
-                    // ==========================================================
-
-                    RecentMaterialsSection(
-                      onMaterialSelected: _openMaterial,
-                    ),
-
-                    const SizedBox(
-                      height: AppSpacing.xl,
-                    ),
-
-                    // ==========================================================
-                    // ACADEMIC HEALTH
-                    // ==========================================================
-
-                    const AcademicHealthCard(
-                      expectedProgress: 0.50,
-                      actualProgress: 0.42,
-                      currentMonth: 2,
-                      totalMonths: 4,
-                    ),
-
-                    const SizedBox(
-                      height: AppSpacing.xl,
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          child: _buildDashboardContent(
+            profile,
+            isDesktop: true,
           ),
         ),
       ],
+    );
+  }
+
+  //===========================================================================
+  // TABLET DASHBOARD
+  //===========================================================================
+
+  Widget _buildTabletDashboard(UserProfile profile) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // =====================================================================
+        // HEADER
+        // =====================================================================
+
+        const DashboardHeader(),
+
+        // =====================================================================
+        // TABLET TOP NAVIGATION
+        // =====================================================================
+
+        DashboardNavigation(
+          activeIndex: _activeNavigationIndex,
+          onItemSelected: (index) {
+            setState(() {
+              _activeNavigationIndex = index;
+            });
+          },
+        ),
+
+        // =====================================================================
+        // TABLET CONTENT
+        // =====================================================================
+
+        Expanded(
+          child: _buildDashboardContent(
+            profile,
+            isDesktop: false,
+          ),
+        ),
+      ],
+    );
+  }
+
+  //===========================================================================
+  // DASHBOARD CONTENT
+  //===========================================================================
+
+  Widget _buildDashboardContent(
+    UserProfile profile, {
+    required bool isDesktop,
+  }) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(
+        isDesktop
+            ? AppSpacing.lg
+            : AppSpacing.md,
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: AppSpacing.dashboardMaxWidth,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // =================================================================
+              // DESKTOP HEADER
+              // =================================================================
+
+              if (isDesktop) ...[
+                const DashboardHeader(),
+
+                const SizedBox(
+                  height: AppSpacing.xl,
+                ),
+              ],
+
+              // =================================================================
+              // GREETING
+              // =================================================================
+
+              DashboardGreeting(
+                profile: profile,
+              ),
+
+              const SizedBox(
+                height: AppSpacing.xl,
+              ),
+
+              // =================================================================
+              // CONTINUE LEARNING + AI TUTOR
+              // =================================================================
+
+              _buildTopDashboardRow(),
+
+              const SizedBox(
+                height: AppSpacing.xl,
+              ),
+
+              // =================================================================
+              // MY COURSES
+              // =================================================================
+
+              MyCoursesSection(
+                onCourseSelected: _openCourse,
+              ),
+
+              const SizedBox(
+                height: AppSpacing.xl,
+              ),
+
+              // =================================================================
+              // RECENT MATERIALS + ACADEMIC HEALTH
+              // =================================================================
+
+              _buildBottomDashboardRow(),
+
+              const SizedBox(
+                height: AppSpacing.xl,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  //===========================================================================
+  // TOP DASHBOARD ROW
+  //===========================================================================
+
+  Widget _buildTopDashboardRow() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 700) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ContinueLearningCard(
+                onPressed: () {
+                  _openCourse('course-1');
+                },
+              ),
+
+              const SizedBox(
+                height: AppSpacing.lg,
+              ),
+
+              AiTutorCard(
+                onPressed: _openAiTutor,
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Expanded(
+              child: ContinueLearningCard(),
+            ),
+
+            const SizedBox(
+              width: AppSpacing.lg,
+            ),
+
+            Expanded(
+              child: AiTutorCard(
+                onPressed: _openAiTutor,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  //===========================================================================
+  // BOTTOM DASHBOARD ROW
+  //===========================================================================
+
+  Widget _buildBottomDashboardRow() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 700) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              RecentMaterialsSection(
+                onMaterialSelected: _openMaterial,
+              ),
+
+              const SizedBox(
+                height: AppSpacing.xl,
+              ),
+
+              const AcademicHealthCard(
+                expectedProgress: 0.50,
+                actualProgress: 0.42,
+                currentMonth: 2,
+                totalMonths: 4,
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: RecentMaterialsSection(
+                onMaterialSelected: _openMaterial,
+              ),
+            ),
+
+            const SizedBox(
+              width: AppSpacing.lg,
+            ),
+
+            const Expanded(
+              child: AcademicHealthCard(
+                expectedProgress: 0.50,
+                actualProgress: 0.42,
+                currentMonth: 2,
+                totalMonths: 4,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

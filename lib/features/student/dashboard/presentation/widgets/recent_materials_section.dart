@@ -84,8 +84,9 @@ final class RecentMaterialsSection extends StatelessWidget {
 
           MaterialTile(
             title: 'Tutorial 3: Mesh Analysis',
-            subtitle: 'Circuit Theory • PDF',
-            icon: Icons.picture_as_pdf_outlined,
+            subtitle: 'Circuit Theory I • PDF • 2.4 MB',
+            icon: Icons.description_outlined,
+            actionIcon: Icons.download_outlined,
             onPressed: () {
               onMaterialSelected('material-1');
             },
@@ -97,8 +98,9 @@ final class RecentMaterialsSection extends StatelessWidget {
 
           MaterialTile(
             title: 'Lecture Recording: Fourier Series',
-            subtitle: 'Engineering Mathematics III • Video',
-            icon: Icons.play_circle_outline,
+            subtitle: 'Engineering Math III • MP4 • 1h 15m',
+            icon: Icons.video_library_outlined,
+            actionIcon: Icons.play_circle_outline,
             onPressed: () {
               onMaterialSelected('material-2');
             },
@@ -110,8 +112,9 @@ final class RecentMaterialsSection extends StatelessWidget {
 
           MaterialTile(
             title: 'Lab Quiz Preparatory Notes',
-            subtitle: 'C++ Programming for Engineers • Notes',
+            subtitle: 'Electromagnetic Fields • DOCX • 450 KB',
             icon: Icons.description_outlined,
+            actionIcon: Icons.download_outlined,
             onPressed: () {
               onMaterialSelected('material-3');
             },

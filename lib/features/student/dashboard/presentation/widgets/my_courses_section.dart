@@ -11,6 +11,17 @@ DESCRIPTION
 -----------
 Displays the three most recently accessed courses by the student.
 
+RESPONSIVE BEHAVIOR
+-------------------
+Wide desktop:
+    Three course cards displayed in one row.
+
+Tablet:
+    Course cards automatically wrap according to available width.
+
+Narrow layouts:
+    Course cards become single-column.
+
 CURRENT PHASE
 -------------
 Presentation-only implementation.
@@ -28,15 +39,47 @@ import 'package:flutter/material.dart';
 
 import 'course_card.dart';
 
+//=============================================================================
+// MY COURSES SECTION
+//=============================================================================
+
 final class MyCoursesSection extends StatelessWidget {
   const MyCoursesSection({
-    required this.onCourseSelected, super.key,
+    required this.onCourseSelected,
+    super.key,
   });
 
   final ValueChanged<String> onCourseSelected;
 
   @override
   Widget build(BuildContext context) {
+    final List<_CourseData> courses = [
+      const _CourseData(
+        courseId: 'course-1',
+        courseName: 'Electromagnetic Fields',
+        courseCode: 'ENG 201',
+        progress: 0.32,
+        imageAsset:
+            'assets/images/student/dashboard/Electromagnetic_Fields_image.jpg',
+      ),
+      const _CourseData(
+        courseId: 'course-2',
+        courseName: 'Engineering Mathematics III',
+        courseCode: 'MATH 205',
+        progress: 0.68,
+        imageAsset:
+            'assets/images/student/dashboard/Engineering_Mathematics_III_MATH_205.jpg',
+      ),
+      const _CourseData(
+        courseId: 'course-3',
+        courseName: 'C++ Programming for Engineers',
+        courseCode: 'CS 210',
+        progress: 0.85,
+        imageAsset:
+            'assets/images/student/dashboard/C++_Programming_for_Engineers_CS_210.jpg',
+      ),
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -51,7 +94,6 @@ final class MyCoursesSection extends StatelessWidget {
               'My Courses',
               style: AppTextStyles.headlineSmall,
             ),
-
             TextButton(
               onPressed: () {},
               child: const Text(
@@ -66,79 +108,106 @@ final class MyCoursesSection extends StatelessWidget {
         ),
 
         // ===================================================================
-        // RECENT COURSES
+        // RESPONSIVE COURSE GRID
         // ===================================================================
 
-        const _TemporaryCourseData(
-          courseId: 'course-1',
-          courseName: 'Electromagnetic Fields',
-          courseCode: 'EEE 302',
-          progress: 0.74,
-        ),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final double availableWidth = constraints.maxWidth;
 
-        const SizedBox(
-          height: AppSpacing.sm,
-        ),
+            final int columns = _calculateColumns(
+              availableWidth,
+            );
 
-        const _TemporaryCourseData(
-          courseId: 'course-2',
-          courseName: 'Engineering Mathematics III',
-          courseCode: 'MAT 302',
-          progress: 0.61,
-        ),
+            const double spacing = AppSpacing.sm;
 
-        const SizedBox(
-          height: AppSpacing.sm,
-        ),
+            final double cardWidth =
+                (availableWidth - ((columns - 1) * spacing)) /
+                    columns;
 
-        const _TemporaryCourseData(
-          courseId: 'course-3',
-          courseName: 'C++ Programming for Engineers',
-          courseCode: 'CEN 304',
-          progress: 0.43,
+            return Wrap(
+              spacing: spacing,
+              runSpacing: spacing,
+              children: courses.map(
+                (course) {
+                  return SizedBox(
+                    width: cardWidth,
+                    child: _CourseItem(
+                      course: course,
+                      onSelected: onCourseSelected,
+                    ),
+                  );
+                },
+              ).toList(),
+            );
+          },
         ),
       ],
+    );
+  }
+
+  //===========================================================================
+  // COLUMN CALCULATION
+  //===========================================================================
+
+  int _calculateColumns(
+    double availableWidth,
+  ) {
+    if (availableWidth >= 1000) {
+      return 3;
+    }
+
+    if (availableWidth >= 620) {
+      return 2;
+    }
+
+    return 1;
+  }
+}
+
+//=============================================================================
+// COURSE ITEM
+//=============================================================================
+
+final class _CourseItem extends StatelessWidget {
+  const _CourseItem({
+    required this.course,
+    required this.onSelected,
+  });
+
+  final _CourseData course;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return CourseCard(
+      courseName: course.courseName,
+      courseCode: course.courseCode,
+      progress: course.progress,
+      imageAsset: course.imageAsset,
+      onPressed: () {
+        onSelected(course.courseId);
+      },
     );
   }
 }
 
 //=============================================================================
-// TEMPORARY COURSE PRESENTATION DATA
+// COURSE DATA
 //=============================================================================
 
-final class _TemporaryCourseData extends StatelessWidget {
-  const _TemporaryCourseData({
+final class _CourseData {
+  const _CourseData({
     required this.courseId,
     required this.courseName,
     required this.courseCode,
     required this.progress,
+    required this.imageAsset,
   });
 
   final String courseId;
   final String courseName;
   final String courseCode;
   final double progress;
-
-  @override
-  Widget build(BuildContext context) {
-    return CourseCard(
-      courseName: courseName,
-      courseCode: courseCode,
-      progress: progress,
-      onPressed: () {
-        // Future flow:
-        //
-        // 1. Retrieve the student's last learning position.
-        // 2. Open the learning recap.
-        // 3. Display completed-section summaries.
-        // 4. Present the recap quiz for the most recent section.
-        // 5. Allow the student to revisit or continue.
-        // 6. Resume the course at the correct position.
-        //
-        // Navigation will be connected when the learning-resume feature
-        // is implemented.
-        debugPrint('Selected course: $courseId');
-      },
-    );
-  }
+  final String imageAsset;
 }

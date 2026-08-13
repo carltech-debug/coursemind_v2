@@ -9,37 +9,27 @@ COMPONENT: Academic Health Card
 
 DESCRIPTION
 -----------
-Compares the student's actual academic completion progress against the
-expected progress for the current point in the semester.
+Displays the student's academic health by comparing actual course progress
+with the progress expected at the current point in the semester.
 
-RESPONSIBILITIES
-----------------
-• Display expected semester progress.
-• Display actual student completion progress.
-• Calculate the difference between expected and actual progress.
-• Determine whether the student is ahead, on track, or behind.
-• Present the comparison clearly to the student.
+ACADEMIC HEALTH
+---------------
+Academic Health = (Actual Progress / Expected Progress) × 100
 
-DATA SOURCES
-------------
-Expected progress:
-    Institution academic calendar / semester dates.
+STATUS
+------
+> 90%  → Green
+> 60%  → Orange
+≤ 60%  → Red
 
-Actual progress:
-    Student learning and course completion data.
-
-IMPORTANT
----------
-This widget does not retrieve data from Firestore.
-
-The parent/data layer supplies the expected and actual progress values.
+The health percentage controls both the status indicator and the motivational
+message.
 
 ==============================================================================
 */
 
 import 'package:coursemind/app/theme/app_colors.dart';
 import 'package:coursemind/app/theme/app_spacing.dart';
-import 'package:coursemind/app/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 
 //=============================================================================
@@ -51,40 +41,31 @@ final class AcademicHealthCard extends StatelessWidget {
     required this.expectedProgress, required this.actualProgress, required this.currentMonth, required this.totalMonths, super.key,
   });
 
-  /// Expected academic completion from 0.0 to 1.0.
+  /// Expected progress from 0.0 to 1.0.
   final double expectedProgress;
 
-  /// Student's actual completion from 0.0 to 1.0.
+  /// Actual student progress from 0.0 to 1.0.
   final double actualProgress;
 
-  /// Current month within the academic period.
   final int currentMonth;
-
-  /// Total number of months in the academic period.
   final int totalMonths;
 
   @override
   Widget build(BuildContext context) {
-    final double safeExpectedProgress =
+    final double safeExpected =
         expectedProgress.clamp(0.0, 1.0);
 
-    final double safeActualProgress =
+    final double safeActual =
         actualProgress.clamp(0.0, 1.0);
 
-    final double progressDifference =
-        safeActualProgress - safeExpectedProgress;
+    final double healthPercentage =
+        _calculateHealth(
+      expectedProgress: safeExpected,
+      actualProgress: safeActual,
+    );
 
-    final _AcademicStatus status =
-        _getAcademicStatus(progressDifference);
-
-    final int expectedPercentage =
-        (safeExpectedProgress * 100).round();
-
-    final int actualPercentage =
-        (safeActualProgress * 100).round();
-
-    final int differencePercentage =
-        (progressDifference.abs() * 100).round();
+    final _HealthStatus status =
+        _getHealthStatus(healthPercentage);
 
     return Container(
       width: double.infinity,
@@ -99,63 +80,57 @@ final class AcademicHealthCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ===================================================================
+          //===================================================================
           // HEADER
-          // ===================================================================
+          //===================================================================
 
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Academic Health',
-                style: AppTextStyles.titleLarge,
-              ),
-
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: AppSpacing.xs,
-                ),
-                decoration: BoxDecoration(
-                  color: _statusBackgroundColor(status),
-                  borderRadius: AppSpacing.borderRadiusRound,
-                ),
+              const Expanded(
                 child: Text(
-                  _statusLabel(status),
+                  'Academic Health',
                   style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _statusTextColor(status),
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.onSurface,
                   ),
                 ),
+              ),
+
+              _buildHealthIndicator(
+                status: status,
+                healthPercentage: healthPercentage,
               ),
             ],
           ),
 
           const SizedBox(
-            height: AppSpacing.sm,
+            height: AppSpacing.xs,
           ),
 
           Text(
             'Month $currentMonth of $totalMonths',
-            style: AppTextStyles.bodySmall,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.onSurfaceVariant,
+            ),
           ),
 
           const SizedBox(
             height: AppSpacing.lg,
           ),
 
-          // ===================================================================
-          // PROGRESS COMPARISON
-          // ===================================================================
+          //===================================================================
+          // EXPECTED / ACTUAL PROGRESS
+          //===================================================================
 
           Row(
             children: [
               Expanded(
-                child: _ProgressColumn(
+                child: _buildProgressColumn(
                   label: 'Expected',
-                  percentage: expectedPercentage,
-                  progress: safeExpectedProgress,
+                  percentage: safeExpected,
                 ),
               ),
 
@@ -164,10 +139,9 @@ final class AcademicHealthCard extends StatelessWidget {
               ),
 
               Expanded(
-                child: _ProgressColumn(
+                child: _buildProgressColumn(
                   label: 'Your Progress',
-                  percentage: actualPercentage,
-                  progress: safeActualProgress,
+                  percentage: safeActual,
                 ),
               ),
             ],
@@ -177,45 +151,93 @@ final class AcademicHealthCard extends StatelessWidget {
             height: AppSpacing.lg,
           ),
 
-          // ===================================================================
-          // COMPARISON MESSAGE
-          // ===================================================================
+          //===================================================================
+          // MOTIVATIONAL MESSAGE
+          //===================================================================
 
+          _buildMotivationalMessage(
+            status: status,
+          ),
+        ],
+      ),
+    );
+  }
+
+  //===========================================================================
+  // HEALTH CALCULATION
+  //===========================================================================
+
+  double _calculateHealth({
+    required double expectedProgress,
+    required double actualProgress,
+  }) {
+    if (expectedProgress <= 0) {
+      return 100;
+    }
+
+    return (actualProgress / expectedProgress) * 100;
+  }
+
+  //===========================================================================
+  // HEALTH STATUS
+  //===========================================================================
+
+  _HealthStatus _getHealthStatus(
+    double healthPercentage,
+  ) {
+    if (healthPercentage > 90) {
+      return _HealthStatus.green;
+    }
+
+    if (healthPercentage > 60) {
+      return _HealthStatus.orange;
+    }
+
+    return _HealthStatus.red;
+  }
+
+  //===========================================================================
+  // HEALTH INDICATOR
+  //===========================================================================
+
+  Widget _buildHealthIndicator({
+    required _HealthStatus status,
+    required double healthPercentage,
+  }) {
+    final _HealthColors colors =
+        _getHealthColors(status);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: colors.background,
+        borderRadius: AppSpacing.borderRadiusRound,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
           Container(
-            width: double.infinity,
-            padding: AppSpacing.paddingMd,
+            width: 8,
+            height: 8,
             decoration: BoxDecoration(
-              color: _statusBackgroundColor(status),
-              borderRadius: AppSpacing.borderRadiusMd,
+              color: colors.foreground,
+              shape: BoxShape.circle,
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  _statusIcon(status),
-                  color: _statusTextColor(status),
-                  size: 20,
-                ),
+          ),
 
-                const SizedBox(
-                  width: AppSpacing.sm,
-                ),
+          const SizedBox(
+            width: AppSpacing.xs,
+          ),
 
-                Expanded(
-                  child: Text(
-                    _comparisonMessage(
-                      status,
-                      differencePercentage,
-                    ),
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1.4,
-                      fontWeight: FontWeight.w500,
-                      color: _statusTextColor(status),
-                    ),
-                  ),
-                ),
-              ],
+          Text(
+            '${healthPercentage.round()}%',
+            style: TextStyle(
+              color: colors.foreground,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -224,125 +246,22 @@ final class AcademicHealthCard extends StatelessWidget {
   }
 
   //===========================================================================
-  // STATUS
+  // PROGRESS COLUMN
   //===========================================================================
 
-  _AcademicStatus _getAcademicStatus(
-    double difference,
-  ) {
-    const double tolerance = 0.03;
-
-    if (difference > tolerance) {
-      return _AcademicStatus.ahead;
-    }
-
-    if (difference < -tolerance) {
-      return _AcademicStatus.behind;
-    }
-
-    return _AcademicStatus.onTrack;
-  }
-
-  String _statusLabel(
-    _AcademicStatus status,
-  ) {
-    switch (status) {
-      case _AcademicStatus.ahead:
-        return 'Ahead';
-
-      case _AcademicStatus.onTrack:
-        return 'On Track';
-
-      case _AcademicStatus.behind:
-        return 'Behind';
-    }
-  }
-
-  IconData _statusIcon(
-    _AcademicStatus status,
-  ) {
-    switch (status) {
-      case _AcademicStatus.ahead:
-        return Icons.trending_up;
-
-      case _AcademicStatus.onTrack:
-        return Icons.check_circle_outline;
-
-      case _AcademicStatus.behind:
-        return Icons.trending_down;
-    }
-  }
-
-  Color _statusBackgroundColor(
-    _AcademicStatus status,
-  ) {
-    switch (status) {
-      case _AcademicStatus.ahead:
-        return AppColors.primaryContainer;
-
-      case _AcademicStatus.onTrack:
-        return AppColors.secondaryContainer;
-
-      case _AcademicStatus.behind:
-        return AppColors.error;
-    }
-  }
-
-  Color _statusTextColor(
-    _AcademicStatus status,
-  ) {
-    switch (status) {
-      case _AcademicStatus.ahead:
-        return AppColors.primary;
-
-      case _AcademicStatus.onTrack:
-        return AppColors.onSecondaryContainer;
-
-      case _AcademicStatus.behind:
-        return AppColors.error;
-    }
-  }
-
-  String _comparisonMessage(
-    _AcademicStatus status,
-    int difference,
-  ) {
-    switch (status) {
-      case _AcademicStatus.ahead:
-        return 'You are $difference% ahead of the expected academic progress.';
-
-      case _AcademicStatus.onTrack:
-        return 'You are currently on track with the expected academic progress.';
-
-      case _AcademicStatus.behind:
-        return 'You are $difference% behind the expected academic progress.';
-    }
-  }
-}
-
-//=============================================================================
-// PROGRESS COLUMN
-//=============================================================================
-
-final class _ProgressColumn extends StatelessWidget {
-  const _ProgressColumn({
-    required this.label,
-    required this.percentage,
-    required this.progress,
-  });
-
-  final String label;
-  final int percentage;
-  final double progress;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildProgressColumn({
+    required String label,
+    required double percentage,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: AppTextStyles.bodySmall,
+          style: const TextStyle(
+            fontSize: 12,
+            color: AppColors.onSurfaceVariant,
+          ),
         ),
 
         const SizedBox(
@@ -350,21 +269,27 @@ final class _ProgressColumn extends StatelessWidget {
         ),
 
         Text(
-          '$percentage%',
-          style: AppTextStyles.headlineSmall,
+          '${(percentage * 100).round()}%',
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: AppColors.onSurface,
+          ),
         ),
 
         const SizedBox(
-          height: AppSpacing.sm,
+          height: AppSpacing.xs,
         ),
 
         ClipRRect(
           borderRadius: AppSpacing.borderRadiusRound,
           child: LinearProgressIndicator(
-            value: progress,
-            minHeight: 7,
-            backgroundColor: AppColors.surfaceContainerHigh,
-            valueColor: const AlwaysStoppedAnimation<Color>(
+            value: percentage,
+            minHeight: 6,
+            backgroundColor:
+                AppColors.surfaceContainerHigh,
+            valueColor:
+                const AlwaysStoppedAnimation<Color>(
               AppColors.secondary,
             ),
           ),
@@ -372,14 +297,126 @@ final class _ProgressColumn extends StatelessWidget {
       ],
     );
   }
+
+  //===========================================================================
+  // MOTIVATIONAL MESSAGE
+  //===========================================================================
+
+  Widget _buildMotivationalMessage({
+    required _HealthStatus status,
+  }) {
+    final _HealthColors colors =
+        _getHealthColors(status);
+
+    return Container(
+      width: double.infinity,
+      padding: AppSpacing.paddingMd,
+      decoration: BoxDecoration(
+        color: colors.background,
+        borderRadius: AppSpacing.borderRadiusMd,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            colors.icon,
+            color: colors.foreground,
+            size: 20,
+          ),
+
+          const SizedBox(
+            width: AppSpacing.sm,
+          ),
+
+          Expanded(
+            child: Text(
+              _getMotivationalMessage(status),
+              style: TextStyle(
+                color: colors.foreground,
+                fontSize: 13,
+                height: 1.4,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  //===========================================================================
+  // MOTIVATIONAL TEXT
+  //===========================================================================
+
+  String _getMotivationalMessage(
+    _HealthStatus status,
+  ) {
+    switch (status) {
+      case _HealthStatus.green:
+        return 'Excellent work! You are ahead of your expected pace. Keep up the momentum.';
+
+      case _HealthStatus.orange:
+        return 'You are making good progress. Stay consistent and keep pushing toward your target.';
+
+      case _HealthStatus.red:
+        return 'Your progress is falling behind the expected pace. Increase your study effort to get back on track.';
+    }
+  }
+
+  //===========================================================================
+  // COLORS
+  //===========================================================================
+
+  _HealthColors _getHealthColors(
+    _HealthStatus status,
+  ) {
+    switch (status) {
+      case _HealthStatus.green:
+        return const _HealthColors(
+          background: Color(0xFFE8F5E9),
+          foreground: Color(0xFF2E7D32),
+          icon: Icons.trending_up,
+        );
+
+      case _HealthStatus.orange:
+        return const _HealthColors(
+          background: Color(0xFFFFF3E0),
+          foreground: Color(0xFFE65100),
+          icon: Icons.trending_flat,
+        );
+
+      case _HealthStatus.red:
+        return const _HealthColors(
+          background: Color(0xFFFFEBEE),
+          foreground: Color(0xFFC62828),
+          icon: Icons.warning_amber_rounded,
+        );
+    }
+  }
 }
 
 //=============================================================================
-// ACADEMIC STATUS
+// HEALTH STATUS
 //=============================================================================
 
-enum _AcademicStatus {
-  ahead,
-  onTrack,
-  behind,
+enum _HealthStatus {
+  green,
+  orange,
+  red,
+}
+
+//=============================================================================
+// HEALTH COLORS
+//=============================================================================
+
+final class _HealthColors {
+  const _HealthColors({
+    required this.background,
+    required this.foreground,
+    required this.icon,
+  });
+
+  final Color background;
+  final Color foreground;
+  final IconData icon;
 }

@@ -9,22 +9,29 @@ COMPONENT: Continue Learning Card
 
 DESCRIPTION
 -----------
-Displays the student's current learning activity and provides a visual
-entry point for continuing a course.
+Displays the student's current learning activity using the CourseMind
+dashboard visual design.
 
-DATA
-----
-Course and progress values are temporary presentation data at this stage.
+RESPONSIBILITIES
+----------------
+• Show the course currently being studied.
+• Show the student's current learning section.
+• Show course progress.
+• Provide the Continue Learning action.
 
-Future versions will receive these values from the course and learning
-activity data layers.
+CURRENT PHASE
+-------------
+Presentation implementation.
+
+The course and progress values are temporary presentation values.
+The final implementation will receive them from the student's learning
+activity/data layer.
 
 ==============================================================================
 */
 
 import 'package:coursemind/app/theme/app_colors.dart';
 import 'package:coursemind/app/theme/app_spacing.dart';
-import 'package:coursemind/app/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 
 //=============================================================================
@@ -34,7 +41,10 @@ import 'package:flutter/material.dart';
 final class ContinueLearningCard extends StatelessWidget {
   const ContinueLearningCard({
     super.key,
+    this.onPressed,
   });
+
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -42,103 +52,97 @@ final class ContinueLearningCard extends StatelessWidget {
       width: double.infinity,
       padding: AppSpacing.paddingLg,
       decoration: BoxDecoration(
-        color: AppColors.surfaceContainerLowest,
+        color: AppColors.primary,
         borderRadius: AppSpacing.borderRadiusXl,
-        border: Border.all(
-          color: AppColors.outlineVariant,
-        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ===================================================================
-          // SECTION HEADER
-          // ===================================================================
+          //===================================================================
+          // CURRENTLY STUDYING LABEL
+          //===================================================================
+
+          Text(
+            'CURRENTLY STUDYING',
+            style: TextStyle(
+              color: AppColors.onPrimary.withValues(
+                alpha: 0.72,
+              ),
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.2,
+            ),
+          ),
+
+          const SizedBox(
+            height: AppSpacing.sm,
+          ),
+
+          //===================================================================
+          // COURSE
+          //===================================================================
+
+          const Text(
+            'Electromagnetic Fields',
+            style: TextStyle(
+              color: AppColors.onPrimary,
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              height: 1.15,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+
+          const SizedBox(
+            height: AppSpacing.xs,
+          ),
+
+          //===================================================================
+          // CURRENT SECTION
+          //===================================================================
+
+          Text(
+            'Chapter 4 • Maxwell’s Equations',
+            style: TextStyle(
+              color: AppColors.onPrimary.withValues(
+                alpha: 0.78,
+              ),
+              fontSize: 14,
+              height: 1.4,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+
+          const SizedBox(
+            height: AppSpacing.xl,
+          ),
+
+          //===================================================================
+          // PROGRESS HEADER
+          //===================================================================
 
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              Text(
+                'Course Progress',
+                style: TextStyle(
+                  color: AppColors.onPrimary.withValues(
+                    alpha: 0.78,
+                  ),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               const Text(
-                'Continue Learning',
-                style: AppTextStyles.titleLarge,
-              ),
-              TextButton(
-                onPressed: () {},
-                child: const Text(
-                  'View All',
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(
-            height: AppSpacing.lg,
-          ),
-
-          // ===================================================================
-          // COURSE INFORMATION
-          // ===================================================================
-
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryContainer,
-                  borderRadius: AppSpacing.borderRadiusMd,
-                ),
-                child: const Icon(
-                  Icons.menu_book_outlined,
-                  color: AppColors.primary,
-                  size: 32,
-                ),
-              ),
-
-              const SizedBox(
-                width: AppSpacing.md,
-              ),
-
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Electromagnetic Fields',
-                      style: AppTextStyles.titleMedium,
-                    ),
-                    SizedBox(
-                      height: AppSpacing.xs,
-                    ),
-                    Text(
-                      'Chapter 4 • Maxwell’s Equations',
-                      style: AppTextStyles.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(
-            height: AppSpacing.lg,
-          ),
-
-          // ===================================================================
-          // PROGRESS
-          // ===================================================================
-
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Course progress',
-                style: AppTextStyles.bodySmall,
-              ),
-              Text(
                 '74%',
-                style: AppTextStyles.labelLarge,
+                style: TextStyle(
+                  color: AppColors.onPrimary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),
@@ -147,14 +151,18 @@ final class ContinueLearningCard extends StatelessWidget {
             height: AppSpacing.xs,
           ),
 
+          //===================================================================
+          // PROGRESS BAR
+          //===================================================================
+
           ClipRRect(
             borderRadius: AppSpacing.borderRadiusRound,
             child: const LinearProgressIndicator(
               value: 0.74,
-              minHeight: 8,
-              backgroundColor: AppColors.surfaceContainerHigh,
+              minHeight: 7,
+              backgroundColor: AppColors.primaryContainer,
               valueColor: AlwaysStoppedAnimation<Color>(
-                AppColors.secondary,
+                AppColors.onPrimary,
               ),
             ),
           ),
@@ -163,19 +171,25 @@ final class ContinueLearningCard extends StatelessWidget {
             height: AppSpacing.lg,
           ),
 
-          // ===================================================================
-          // CONTINUE ACTION
-          // ===================================================================
+          //===================================================================
+          // RESUME ACTION
+          //===================================================================
 
-          SizedBox(
-            width: double.infinity,
+          Align(
+            alignment: Alignment.centerLeft,
             child: ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: onPressed,
               icon: const Icon(
                 Icons.play_arrow,
+                size: 18,
               ),
               label: const Text(
                 'Continue Learning',
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.onPrimary,
+                foregroundColor: AppColors.primary,
+                elevation: 0,
               ),
             ),
           ),

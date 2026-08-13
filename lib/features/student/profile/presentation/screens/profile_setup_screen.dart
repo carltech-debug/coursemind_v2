@@ -722,6 +722,7 @@ final class _ProfileSetupScreenState
     required List<String> items,
   }) {
     return DropdownButtonFormField<String>(
+      isExpanded: true,
       initialValue:
           controller.text.isEmpty
               ? null
