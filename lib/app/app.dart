@@ -38,6 +38,7 @@ CourseMind Development Team
 
 import 'package:coursemind/app/routing/auth_action_handler.dart';
 import 'package:coursemind/app/theme/app_theme.dart';
+//import 'package:coursemind/core/ai/dev/ai_material_analysis_test_screen.dart';
 import 'package:coursemind/features/public/splash/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -62,6 +63,7 @@ class CourseMindApp extends StatelessWidget {
       home: const AuthActionHandler(
         child: SplashScreen(),
       ),
+      //home: const AiMaterialAnalysisTestScreen(),
     );
   }
 }

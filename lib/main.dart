@@ -45,6 +45,7 @@ Phase 2 – Public Module
 ==============================================================================
 */
 
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -59,6 +60,12 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await AppBootstrap.bootstrap();
+
+  await FirebaseAppCheck.instance.activate(
+    providerWeb: ReCaptchaV3Provider(
+      '6Le5_4UtAAAAAEidwkb1GlMf0Ar2kUqnpMwk8jb3',
+    ),
+  );
 
   runApp(
     const ProviderScope(
