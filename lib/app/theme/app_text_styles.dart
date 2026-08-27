@@ -8,29 +8,34 @@ import 'app_colors.dart';
 ///
 /// Centralized text styles used throughout CourseMind.
 ///
-/// Screen-specific text styles should only be created when a component has
-/// a genuine visual requirement that is not covered by this system.
+/// The approved Academic design uses Inter. The font family token is declared
+/// here so all CourseMind typography resolves consistently once the font asset
+/// is bundled/configured.
 /// ============================================================================
 
 abstract final class AppTextStyles {
+  static const String fontFamily = 'Inter';
+
   // ===========================================================================
   // DISPLAY
   // ===========================================================================
 
   static const TextStyle displayLarge = TextStyle(
-    fontSize: 40,
-    height: 1.2,
+    fontFamily: fontFamily,
+    fontSize: 48,
+    height: 56 / 48,
     fontWeight: FontWeight.w700,
     color: AppColors.onSurface,
-    letterSpacing: -0.8,
+    letterSpacing: -0.96,
   );
 
   static const TextStyle displayMedium = TextStyle(
+    fontFamily: fontFamily,
     fontSize: 32,
-    height: 1.2,
-    fontWeight: FontWeight.w700,
+    height: 40 / 32,
+    fontWeight: FontWeight.w600,
     color: AppColors.onSurface,
-    letterSpacing: -0.6,
+    letterSpacing: -0.32,
   );
 
   // ===========================================================================
@@ -38,22 +43,26 @@ abstract final class AppTextStyles {
   // ===========================================================================
 
   static const TextStyle headlineLarge = TextStyle(
-    fontSize: 28,
-    height: 1.25,
-    fontWeight: FontWeight.w700,
+    fontFamily: fontFamily,
+    fontSize: 32,
+    height: 40 / 32,
+    fontWeight: FontWeight.w600,
     color: AppColors.onSurface,
+    letterSpacing: -0.32,
   );
 
   static const TextStyle headlineMedium = TextStyle(
+    fontFamily: fontFamily,
     fontSize: 24,
-    height: 1.3,
+    height: 32 / 24,
     fontWeight: FontWeight.w600,
     color: AppColors.onSurface,
   );
 
   static const TextStyle headlineSmall = TextStyle(
+    fontFamily: fontFamily,
     fontSize: 20,
-    height: 1.3,
+    height: 28 / 20,
     fontWeight: FontWeight.w600,
     color: AppColors.onSurface,
   );
@@ -63,22 +72,25 @@ abstract final class AppTextStyles {
   // ===========================================================================
 
   static const TextStyle titleLarge = TextStyle(
+    fontFamily: fontFamily,
     fontSize: 18,
-    height: 1.35,
-    fontWeight: FontWeight.w600,
+    height: 28 / 18,
+    fontWeight: FontWeight.w400,
     color: AppColors.onSurface,
   );
 
   static const TextStyle titleMedium = TextStyle(
+    fontFamily: fontFamily,
     fontSize: 16,
-    height: 1.4,
+    height: 24 / 16,
     fontWeight: FontWeight.w600,
     color: AppColors.onSurface,
   );
 
   static const TextStyle titleSmall = TextStyle(
+    fontFamily: fontFamily,
     fontSize: 14,
-    height: 1.4,
+    height: 20 / 14,
     fontWeight: FontWeight.w600,
     color: AppColors.onSurface,
   );
@@ -88,22 +100,25 @@ abstract final class AppTextStyles {
   // ===========================================================================
 
   static const TextStyle bodyLarge = TextStyle(
-    fontSize: 16,
-    height: 1.5,
+    fontFamily: fontFamily,
+    fontSize: 18,
+    height: 28 / 18,
     fontWeight: FontWeight.w400,
     color: AppColors.onSurface,
   );
 
   static const TextStyle bodyMedium = TextStyle(
-    fontSize: 14,
-    height: 1.45,
+    fontFamily: fontFamily,
+    fontSize: 16,
+    height: 24 / 16,
     fontWeight: FontWeight.w400,
     color: AppColors.onSurfaceVariant,
   );
 
   static const TextStyle bodySmall = TextStyle(
+    fontFamily: fontFamily,
     fontSize: 12,
-    height: 1.4,
+    height: 16 / 12,
     fontWeight: FontWeight.w400,
     color: AppColors.outline,
   );
@@ -113,25 +128,29 @@ abstract final class AppTextStyles {
   // ===========================================================================
 
   static const TextStyle labelLarge = TextStyle(
+    fontFamily: fontFamily,
     fontSize: 14,
-    height: 1.4,
+    height: 20 / 14,
     fontWeight: FontWeight.w600,
     color: AppColors.onSurface,
+    letterSpacing: 0.28,
   );
 
   static const TextStyle labelMedium = TextStyle(
-    fontSize: 12,
-    height: 1.35,
+    fontFamily: fontFamily,
+    fontSize: 14,
+    height: 20 / 14,
     fontWeight: FontWeight.w600,
     color: AppColors.onSurfaceVariant,
+    letterSpacing: 0.28,
   );
 
   static const TextStyle labelSmall = TextStyle(
-    fontSize: 10,
-    height: 1.3,
-    fontWeight: FontWeight.w700,
+    fontFamily: fontFamily,
+    fontSize: 12,
+    height: 16 / 12,
+    fontWeight: FontWeight.w500,
     color: AppColors.outline,
-    letterSpacing: 0.5,
   );
 
   // ===========================================================================
@@ -139,53 +158,72 @@ abstract final class AppTextStyles {
   // ===========================================================================
 
   static const TextStyle buttonLarge = TextStyle(
+    fontFamily: fontFamily,
     fontSize: 16,
-    height: 1.4,
+    height: 24 / 16,
     fontWeight: FontWeight.w600,
   );
 
   static const TextStyle buttonMedium = TextStyle(
+    fontFamily: fontFamily,
     fontSize: 14,
-    height: 1.4,
+    height: 20 / 14,
     fontWeight: FontWeight.w600,
   );
 
   static const TextStyle buttonSmall = TextStyle(
+    fontFamily: fontFamily,
     fontSize: 12,
-    height: 1.35,
+    height: 16 / 12,
     fontWeight: FontWeight.w600,
   );
 
   // ===========================================================================
-  // DASHBOARD-SPECIFIC BASE STYLES
+  // MOBILE / RESPONSIVE TOKENS
+  // ===========================================================================
+
+  static const TextStyle headlineLargeMobile = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 24,
+    height: 32 / 24,
+    fontWeight: FontWeight.w600,
+    color: AppColors.onSurface,
+  );
+
+  // ===========================================================================
+  // DASHBOARD BASE STYLES
   // ===========================================================================
 
   static const TextStyle dashboardGreeting = TextStyle(
+    fontFamily: fontFamily,
     fontSize: 32,
-    height: 1.2,
-    fontWeight: FontWeight.w700,
+    height: 40 / 32,
+    fontWeight: FontWeight.w600,
     color: AppColors.primary,
-    letterSpacing: -0.6,
+    letterSpacing: -0.32,
   );
 
   static const TextStyle dashboardSectionTitle = TextStyle(
+    fontFamily: fontFamily,
     fontSize: 24,
-    height: 1.3,
+    height: 32 / 24,
     fontWeight: FontWeight.w600,
     color: AppColors.primary,
   );
 
   static const TextStyle dashboardHeroTitle = TextStyle(
+    fontFamily: fontFamily,
     fontSize: 48,
-    height: 1.1,
-    fontWeight: FontWeight.w800,
+    height: 56 / 48,
+    fontWeight: FontWeight.w700,
     color: AppColors.onPrimary,
-    letterSpacing: -0.8,
+    letterSpacing: -0.96,
   );
 
   static const TextStyle dashboardHeroBody = TextStyle(
+    fontFamily: fontFamily,
     fontSize: 16,
-    height: 1.5,
+    height: 24 / 16,
     fontWeight: FontWeight.w400,
     color: Colors.white70,
   );

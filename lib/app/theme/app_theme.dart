@@ -9,20 +9,15 @@ import 'app_text_styles.dart';
 /// ============================================================================
 ///
 /// Connects the CourseMind design system to Flutter's Material ThemeData.
-///
-/// Responsibilities:
-/// - Configure Material 3.
-/// - Apply the CourseMind color palette.
-/// - Register application typography.
-/// - Configure common Material components.
-///
-/// Colors, spacing, and typography remain defined in their dedicated files.
+/// The Academic/Institution visual language is merged into the existing
+/// CourseMind theme rather than creating a second theme system.
 /// ============================================================================
 
 abstract final class AppTheme {
   static ThemeData get light {
     return ThemeData(
       useMaterial3: true,
+      fontFamily: AppTextStyles.fontFamily,
 
       // ========================================================================
       // COLORS
@@ -30,20 +25,50 @@ abstract final class AppTheme {
 
       scaffoldBackgroundColor: AppColors.background,
 
-      colorScheme: const ColorScheme.light(
+      colorScheme: ColorScheme.light(
         primary: AppColors.primary,
         onPrimary: AppColors.onPrimary,
         primaryContainer: AppColors.primaryContainer,
+        onPrimaryContainer: AppColors.onPrimaryContainer,
+        primaryFixed: AppColors.primaryFixed,
+        primaryFixedDim: AppColors.primaryFixedDim,
+        onPrimaryFixed: AppColors.onPrimaryFixed,
+        onPrimaryFixedVariant: AppColors.onPrimaryFixedVariant,
+        inversePrimary: AppColors.inversePrimary,
         secondary: AppColors.secondary,
         onSecondary: AppColors.onSecondary,
         secondaryContainer: AppColors.secondaryContainer,
         onSecondaryContainer: AppColors.onSecondaryContainer,
-        surface: AppColors.surfaceContainerLowest,
+        secondaryFixed: AppColors.secondaryFixed,
+        secondaryFixedDim: AppColors.secondaryFixedDim,
+        onSecondaryFixed: AppColors.onSecondaryFixed,
+        onSecondaryFixedVariant: AppColors.onSecondaryFixedVariant,
+        tertiary: AppColors.tertiary,
+        onTertiary: AppColors.onTertiary,
+        tertiaryContainer: AppColors.tertiaryContainer,
+        onTertiaryContainer: AppColors.onTertiaryContainer,
+        tertiaryFixed: AppColors.tertiaryFixed,
+        tertiaryFixedDim: AppColors.tertiaryFixedDim,
+        onTertiaryFixed: AppColors.onTertiaryFixed,
+        onTertiaryFixedVariant: AppColors.onTertiaryFixedVariant,
+        surface: AppColors.surface,
+        surfaceDim: AppColors.surfaceDim,
+        surfaceBright: AppColors.surfaceBright,
+        surfaceContainerLowest: AppColors.surfaceContainerLowest,
+        surfaceContainerLow: AppColors.surfaceContainerLow,
+        surfaceContainer: AppColors.surfaceContainer,
+        surfaceContainerHigh: AppColors.surfaceContainerHigh,
+        surfaceContainerHighest: AppColors.surfaceContainerHighest,
         onSurface: AppColors.onSurface,
         onSurfaceVariant: AppColors.onSurfaceVariant,
+        inverseSurface: AppColors.inverseSurface,
+        onInverseSurface: AppColors.onInverseSurface,
         outline: AppColors.outline,
         outlineVariant: AppColors.outlineVariant,
         error: AppColors.error,
+        onError: AppColors.onError,
+        errorContainer: AppColors.errorContainer,
+        onErrorContainer: AppColors.onErrorContainer,
       ),
 
       // ========================================================================
@@ -53,19 +78,15 @@ abstract final class AppTheme {
       textTheme: const TextTheme(
         displayLarge: AppTextStyles.displayLarge,
         displayMedium: AppTextStyles.displayMedium,
-
         headlineLarge: AppTextStyles.headlineLarge,
         headlineMedium: AppTextStyles.headlineMedium,
         headlineSmall: AppTextStyles.headlineSmall,
-
         titleLarge: AppTextStyles.titleLarge,
         titleMedium: AppTextStyles.titleMedium,
         titleSmall: AppTextStyles.titleSmall,
-
         bodyLarge: AppTextStyles.bodyLarge,
         bodyMedium: AppTextStyles.bodyMedium,
         bodySmall: AppTextStyles.bodySmall,
-
         labelLarge: AppTextStyles.labelLarge,
         labelMedium: AppTextStyles.labelMedium,
         labelSmall: AppTextStyles.labelSmall,
@@ -116,37 +137,31 @@ abstract final class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surfaceContainer,
-
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
           vertical: AppSpacing.sm,
         ),
-
         border: OutlineInputBorder(
           borderRadius: AppSpacing.borderRadiusLg,
           borderSide: BorderSide.none,
         ),
-
         enabledBorder: OutlineInputBorder(
           borderRadius: AppSpacing.borderRadiusLg,
           borderSide: BorderSide.none,
         ),
-
         focusedBorder: OutlineInputBorder(
           borderRadius: AppSpacing.borderRadiusLg,
           borderSide: const BorderSide(
-            color: AppColors.secondary,
+            color: AppColors.primary,
             width: 1.5,
           ),
         ),
-
         errorBorder: OutlineInputBorder(
           borderRadius: AppSpacing.borderRadiusLg,
           borderSide: const BorderSide(
             color: AppColors.error,
           ),
         ),
-
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: AppSpacing.borderRadiusLg,
           borderSide: const BorderSide(
@@ -162,19 +177,16 @@ abstract final class AppTheme {
 
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.secondary,
-          foregroundColor: AppColors.onSecondary,
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.onPrimary,
           elevation: 0,
-
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.lg,
             vertical: AppSpacing.sm,
           ),
-
           shape: RoundedRectangleBorder(
             borderRadius: AppSpacing.borderRadiusMd,
           ),
-
           textStyle: AppTextStyles.buttonMedium,
         ),
       ),
@@ -185,21 +197,17 @@ abstract final class AppTheme {
 
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.secondary,
-
+          foregroundColor: AppColors.primary,
           side: const BorderSide(
-            color: AppColors.secondary,
+            color: AppColors.outline,
           ),
-
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.lg,
             vertical: AppSpacing.sm,
           ),
-
           shape: RoundedRectangleBorder(
             borderRadius: AppSpacing.borderRadiusMd,
           ),
-
           textStyle: AppTextStyles.buttonMedium,
         ),
       ),
@@ -210,13 +218,11 @@ abstract final class AppTheme {
 
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.secondary,
-
+          foregroundColor: AppColors.primary,
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.sm,
             vertical: AppSpacing.xs,
           ),
-
           textStyle: AppTextStyles.buttonMedium,
         ),
       ),
@@ -246,7 +252,7 @@ abstract final class AppTheme {
       // ========================================================================
 
       progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: AppColors.secondary,
+        color: AppColors.primary,
         linearTrackColor: AppColors.surfaceContainer,
       ),
     );
@@ -256,18 +262,22 @@ abstract final class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-
+      fontFamily: AppTextStyles.fontFamily,
       colorScheme: const ColorScheme.dark(
-        primary: AppColors.secondaryFixedDim,
-        onPrimary: AppColors.primaryContainer,
+        primary: AppColors.primaryFixedDim,
+        onPrimary: AppColors.onPrimaryFixed,
+        primaryContainer: AppColors.primaryContainer,
         secondary: AppColors.secondaryFixedDim,
-        onSecondary: AppColors.primaryContainer,
-        surface: Color(0xFF191C1E),
-        onSurface: Color(0xFFE1E2E5),
-        onSurfaceVariant: Color(0xFFC6C6CD),
-        outline: Color(0xFF909096),
-        outlineVariant: Color(0xFF45464D),
+        onSecondary: AppColors.onSecondaryFixed,
+        tertiary: AppColors.tertiaryFixedDim,
+        onTertiary: AppColors.onTertiaryFixed,
+        surface: Color(0xFF181445),
+        onSurface: Color(0xFFF3EEFF),
+        onSurfaceVariant: Color(0xFFC7C4D8),
+        outline: Color(0xFF777587),
+        outlineVariant: Color(0xFF464555),
         error: Color(0xFFFFB4AB),
+        onError: Color(0xFF690005),
       ),
     );
   }

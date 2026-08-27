@@ -9,6 +9,7 @@ COMPONENT: Sign-Up Screen
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../institution/presentation/auth/registration/screens/institution_account_setup_screen.dart';
 import '../../student/profile/presentation/screens/profile_setup_screen.dart';
 import '../models/auth_state.dart';
 import '../providers/auth_provider.dart';
@@ -1013,21 +1014,28 @@ final class _SignUpScreenState
               //=================================================================
 
               Center(
-                child:
-                    GestureDetector(
+                child: GestureDetector(
                   onTap: isLoading
                       ? null
-                      : () {},
-                  child:
-                      const Text(
+                      : () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  InstitutionAccountSetupScreen(
+                                onBack: () {
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                  child: const Text(
                     'Register as an institution',
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight:
-                          FontWeight.w600,
-                      color:
-                          SignUpTheme
-                              .primary,
+                      fontWeight: FontWeight.w600,
+                      color: SignUpTheme.primary,
                     ),
                   ),
                 ),
