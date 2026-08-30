@@ -1,5 +1,5 @@
-import 'ai_material_ingestor.dart';
-import 'models/ai_material.dart';
+import '../../../core/ai/materials/ai_material_ingestor.dart';
+import '../../../core/ai/materials/models/ai_material.dart';
 
 final class DevTextMaterialIngestor implements AiMaterialIngestor {
   const DevTextMaterialIngestor();

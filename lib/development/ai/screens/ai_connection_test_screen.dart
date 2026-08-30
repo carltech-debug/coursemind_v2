@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../config/ai_container.dart';
-import '../context/academic_context.dart';
+import '../../../core/ai/config/ai_container.dart';
+import '../../../core/ai/context/academic_context.dart';
 //import '../context/ai_context_service.dart';
 //import '../context/dev_academic_context_authorizer.dart';
 //import '../context/firestore_academic_context_provider.dart';
@@ -9,7 +9,7 @@ import '../context/academic_context.dart';
 //import '../prompts/academic_prompt_builder.dart';
 //import '../prompts/ai_prompts.dart';
 //import '../providers/gemini_provider.dart';
-import '../services/ai_orchestrator.dart';
+import '../../../core/ai/services/ai_orchestrator.dart';
 //import '../services/ai_service.dart';
 
 class AiConnectionTestScreen extends StatefulWidget {

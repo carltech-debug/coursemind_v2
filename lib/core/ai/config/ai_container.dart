@@ -1,5 +1,5 @@
+import '../../../development/ai/authorization/dev_academic_context_authorizer.dart';
 import '../context/ai_context_service.dart';
-import '../context/dev_academic_context_authorizer.dart';
 import '../context/firestore_academic_context_provider.dart';
 import '../providers/gemini_provider.dart';
 import '../services/ai_orchestrator.dart';

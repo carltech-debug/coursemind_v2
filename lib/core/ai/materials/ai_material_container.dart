@@ -1,7 +1,7 @@
+import '../../../development/ai/materials/dev_text_material_ingestor.dart';
 import '../providers/gemini_provider.dart';
 import 'ai_material_analysis_service.dart';
 import 'ai_material_service.dart';
-import 'dev_text_material_ingestor.dart';
 import 'gemini_material_analyzer.dart';
 
 final class AiMaterialContainer {

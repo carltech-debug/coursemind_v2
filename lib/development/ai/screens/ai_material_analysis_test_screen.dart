@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../context/academic_context.dart';
-import '../materials/ai_material_container.dart';
-import '../materials/models/ai_material.dart';
+import '../../../core/ai/context/academic_context.dart';
+import '../../../core/ai/materials/ai_material_container.dart';
+import '../../../core/ai/materials/models/ai_material.dart';
 
 final class AiMaterialAnalysisTestScreen extends StatefulWidget {
   const AiMaterialAnalysisTestScreen({

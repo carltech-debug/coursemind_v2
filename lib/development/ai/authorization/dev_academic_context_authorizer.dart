@@ -1,5 +1,5 @@
-import 'academic_context.dart';
-import 'academic_context_authorizer.dart';
+import '../../../core/ai/context/academic_context.dart';
+import '../../../core/ai/context/academic_context_authorizer.dart';
 
 final class DevAcademicContextAuthorizer
     implements AcademicContextAuthorizer {

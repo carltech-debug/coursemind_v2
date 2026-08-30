@@ -1,8 +1,8 @@
 import 'package:coursemind/core/ai/errors/ai_exception.dart';
 import 'package:coursemind/core/ai/materials/ai_material_analysis_parser.dart';
 import 'package:coursemind/core/ai/materials/ai_material_service.dart';
-import 'package:coursemind/core/ai/materials/dev_text_material_ingestor.dart';
 import 'package:coursemind/core/ai/materials/models/ai_material.dart';
+import 'package:coursemind/development/ai/materials/dev_text_material_ingestor.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
