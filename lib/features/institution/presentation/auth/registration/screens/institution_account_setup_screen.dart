@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../../../app/theme/app_colors.dart';
 import '../../../../../../../app/theme/app_spacing.dart';
+import '../providers/institution_registration_provider.dart';
 import '../widgets/institution_account_form.dart';
 import '../widgets/institution_glass_card.dart';
 import '../widgets/institution_glass_circle_button.dart';
@@ -12,7 +14,8 @@ import '../widgets/institution_registration_sidebar.dart';
 import '../widgets/institution_security_notice.dart';
 import 'administrator_detail_screen.dart';
 
-class InstitutionAccountSetupScreen extends StatefulWidget {
+class InstitutionAccountSetupScreen
+    extends ConsumerStatefulWidget {
   const InstitutionAccountSetupScreen({
     super.key,
     this.onBack,
@@ -23,19 +26,64 @@ class InstitutionAccountSetupScreen extends StatefulWidget {
   final VoidCallback? onContinue;
 
   @override
-  State<InstitutionAccountSetupScreen> createState() =>
+  ConsumerState<InstitutionAccountSetupScreen> createState() =>
       _InstitutionAccountSetupScreenState();
 }
 
 class _InstitutionAccountSetupScreenState
-    extends State<InstitutionAccountSetupScreen> {
-  String? _selectedInstitutionType;
-  String _selectedCountry = 'Ghana';
+    extends ConsumerState<InstitutionAccountSetupScreen> {
+  late final TextEditingController
+      _institutionNameController;
+
+  late final TextEditingController _websiteController;
+
+  late final TextEditingController
+      _officialEmailController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final registrationState =
+        ref.read(institutionRegistrationProvider);
+
+    _institutionNameController =
+        TextEditingController(
+      text: registrationState.institutionName,
+    );
+
+    _websiteController =
+        TextEditingController(
+      text: registrationState.website,
+    );
+
+    _officialEmailController =
+        TextEditingController(
+      text: registrationState.officialEmail,
+    );
+  }
+
+  @override
+  void dispose() {
+    _institutionNameController.dispose();
+    _websiteController.dispose();
+    _officialEmailController.dispose();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
     final isDesktop = width >= 768;
+
+    final registrationState =
+        ref.watch(institutionRegistrationProvider);
+
+    final registrationNotifier =
+        ref.read(
+      institutionRegistrationProvider.notifier,
+    );
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -73,21 +121,25 @@ class _InstitutionAccountSetupScreenState
                               vertical: AppSpacing.lg,
                             ),
                             child: ConstrainedBox(
-                              constraints: const BoxConstraints(
+                              constraints:
+                                  const BoxConstraints(
                                 maxWidth: 700,
                               ),
                               child: InstitutionGlassCard(
                                 child: Column(
                                   crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
+                                      CrossAxisAlignment
+                                          .stretch,
                                   children: [
                                     // Tablet/mobile help button.
                                     if (!isDesktop)
                                       Align(
-                                        alignment: Alignment.topRight,
+                                        alignment:
+                                            Alignment.topRight,
                                         child:
                                             InstitutionGlassCircleButton(
-                                          icon: Icons.help_outline,
+                                          icon: Icons
+                                              .help_outline,
                                           onPressed: () {
                                             // Help action will be
                                             // connected later.
@@ -97,48 +149,81 @@ class _InstitutionAccountSetupScreenState
 
                                     if (!isDesktop)
                                       const SizedBox(
-                                        height: AppSpacing.sm,
+                                        height:
+                                            AppSpacing.sm,
                                       ),
 
                                     // Screen header.
                                     const InstitutionRegistrationHeader(),
 
                                     const SizedBox(
-                                      height: AppSpacing.xl,
+                                      height:
+                                          AppSpacing.xl,
                                     ),
 
                                     // Institution information form.
                                     InstitutionAccountForm(
                                       selectedInstitutionType:
-                                          _selectedInstitutionType,
+                                          registrationState
+                                              .institutionType,
                                       selectedCountry:
-                                          _selectedCountry,
-                                      onInstitutionTypeChanged: (value) {
-                                        setState(() {
-                                          _selectedInstitutionType =
-                                              value;
-                                        });
-                                      },
-                                      onCountryChanged: (value) {
+                                          registrationState
+                                              .country,
+                                      institutionNameController:
+                                          _institutionNameController,
+                                      websiteController:
+                                          _websiteController,
+                                      officialEmailController:
+                                          _officialEmailController,
+
+                                      onInstitutionNameChanged:
+                                          registrationNotifier
+                                              .updateInstitutionName,
+
+                                      onInstitutionTypeChanged:
+                                          (value) {
                                         if (value == null) {
                                           return;
                                         }
 
-                                        setState(() {
-                                          _selectedCountry = value;
-                                        });
+                                        registrationNotifier
+                                            .updateInstitutionType(
+                                          value,
+                                        );
                                       },
+
+                                      onCountryChanged:
+                                          (value) {
+                                        if (value == null) {
+                                          return;
+                                        }
+
+                                        registrationNotifier
+                                            .updateCountry(
+                                          value,
+                                        );
+                                      },
+
+                                      onWebsiteChanged:
+                                          registrationNotifier
+                                              .updateWebsite,
+
+                                      onOfficialEmailChanged:
+                                          registrationNotifier
+                                              .updateOfficialEmail,
                                     ),
 
                                     const SizedBox(
-                                      height: AppSpacing.lg,
+                                      height:
+                                          AppSpacing.lg,
                                     ),
 
                                     // Security notice.
                                     const InstitutionSecurityNotice(),
 
                                     const SizedBox(
-                                      height: AppSpacing.lg,
+                                      height:
+                                          AppSpacing.lg,
                                     ),
 
                                     // Navigation actions.
@@ -151,7 +236,9 @@ class _InstitutionAccountSetupScreenState
                                             builder: (_) =>
                                                 AdministratorDetailScreen(
                                               onBack: () {
-                                                Navigator.pop(context);
+                                                Navigator.pop(
+                                                  context,
+                                                );
                                               },
                                             ),
                                           ),

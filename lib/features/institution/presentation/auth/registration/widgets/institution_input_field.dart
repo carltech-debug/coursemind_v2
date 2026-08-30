@@ -9,6 +9,8 @@ class InstitutionInputField
   const InstitutionInputField({
     required this.label, required this.placeholder, required this.prefixIcon, super.key,
     this.helperText,
+    this.controller,
+    this.onChanged,
     this.keyboardType =
         TextInputType.text,
   });
@@ -18,6 +20,8 @@ class InstitutionInputField
   final IconData prefixIcon;
   final String? helperText;
   final TextInputType keyboardType;
+  final TextEditingController? controller;
+  final ValueChanged<String>? onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +43,8 @@ class InstitutionInputField
         ),
 
         TextField(
+          controller: controller,
+          onChanged: onChanged,
           keyboardType: keyboardType,
           style:
               AppTextStyles.bodyMedium.copyWith(

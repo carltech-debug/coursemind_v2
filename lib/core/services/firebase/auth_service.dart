@@ -1,59 +1,79 @@
-/*
-==============================================================================
-FILE: auth_service.dart
-MODULE: Firebase Authentication
-COMPONENT: Authentication Service
-==============================================================================
+import 'package:firebase_auth/firebase_auth.dart';
 
-DESCRIPTION
------------
-Provides Firebase Authentication services.
+class AuthService {
+  AuthService({
+    FirebaseAuth? firebaseAuth,
+  }) : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
 
-PURPOSE
--------
-Centralizes authentication operations for the CourseMind application.
+  final FirebaseAuth _firebaseAuth;
 
-RESPONSIBILITIES
-----------------
-• Student sign in.
-• Institution sign in.
-• User registration.
-• Password reset.
-• Email verification.
-• Session management.
+  User? get currentUser => _firebaseAuth.currentUser;
 
-FUTURE IMPLEMENTATION
----------------------
-This service will wrap Firebase Authentication and expose reusable
-authentication methods.
+  Stream<User?> get authStateChanges =>
+      _firebaseAuth.authStateChanges();
 
-DEPENDENCIES
-------------
-firebase_auth
+  Future<UserCredential> signUp({
+    required String email,
+    required String password,
+  }) {
+    return _firebaseAuth.createUserWithEmailAndPassword(
+      email: email.trim(),
+      password: password,
+    );
+  }
 
-NOTES
------
-Authentication logic should remain isolated from UI components.
+  Future<UserCredential> login({
+    required String email,
+    required String password,
+  }) {
+    return _firebaseAuth.signInWithEmailAndPassword(
+      email: email.trim(),
+      password: password,
+    );
+  }
 
-STATUS
-------
-🚧 Placeholder
+  Future<void> logout() {
+    return _firebaseAuth.signOut();
+  }
 
-AUTHOR
-------
-CourseMind Development Team
+  Future<void> sendPasswordResetEmail({
+    required String email,
+  }) {
+    return _firebaseAuth.sendPasswordResetEmail(
+      email: email.trim(),
+    );
+  }
 
-LAST UPDATED
-------------
-Phase 1 – Project Foundation
+  Future<String> verifyPasswordResetCode({
+    required String code,
+  }) {
+    return _firebaseAuth.verifyPasswordResetCode(code);
+  }
 
-==============================================================================
-*/
+  Future<void> confirmPasswordReset({
+    required String code,
+    required String newPassword,
+  }) {
+    return _firebaseAuth.confirmPasswordReset(
+      code: code,
+      newPassword: newPassword,
+    );
+  }
 
-//import 'package:firebase_auth/firebase_auth.dart';
+  Future<void> sendEmailVerification() async {
+    final user = _firebaseAuth.currentUser;
 
-//=============================================================================
-// AUTHENTICATION SERVICE
-//=============================================================================
+    if (user == null) {
+      throw FirebaseAuthException(
+        code: 'user-not-found',
+        message: 'No authenticated user is available.',
+      );
+    }
 
-// Implementation will begin during the Authentication feature.
+    await user.sendEmailVerification();
+  }
+
+  Future<void> reloadCurrentUser() async {
+    await _firebaseAuth.currentUser?.reload();
+  }
+}

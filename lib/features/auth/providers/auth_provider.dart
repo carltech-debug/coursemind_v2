@@ -9,8 +9,8 @@ COMPONENT: Authentication Provider
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/services/firebase/auth_service.dart';
 import '../models/auth_state.dart';
-
 //=============================================================================
 // AUTH PROVIDER
 //=============================================================================
@@ -25,11 +25,10 @@ final authProvider =
 //=============================================================================
 
 final class AuthNotifier extends Notifier<AuthState> {
-  final FirebaseAuth _firebaseAuth =
-      FirebaseAuth.instance;
+  final AuthService _authService = AuthService();
 
   /// Currently authenticated Firebase user.
-  User? get currentUser => _firebaseAuth.currentUser;
+  User? get currentUser => _authService.currentUser;
 
   @override
   AuthState build() {
@@ -49,8 +48,8 @@ final class AuthNotifier extends Notifier<AuthState> {
     );
 
     try {
-      await _firebaseAuth.createUserWithEmailAndPassword(
-        email: email.trim(),
+      await _authService.signUp(
+        email: email,
         password: password,
       );
 
@@ -84,10 +83,10 @@ final class AuthNotifier extends Notifier<AuthState> {
     );
 
     try {
-      await _firebaseAuth.signInWithEmailAndPassword(
-        email: email.trim(),
-        password: password,
-      );
+     await _authService.login(
+      email: email,
+      password: password,
+    );
 
       state = const AuthState(
         status: AuthStatus.authenticated,
@@ -118,8 +117,8 @@ final class AuthNotifier extends Notifier<AuthState> {
     );
 
     try {
-      await _firebaseAuth.sendPasswordResetEmail(
-        email: email.trim(),
+      await _authService.sendPasswordResetEmail(
+        email: email,
       );
 
       state = const AuthState(
@@ -152,8 +151,8 @@ final class AuthNotifier extends Notifier<AuthState> {
 
     try {
       final email =
-          await _firebaseAuth.verifyPasswordResetCode(
-        code,
+          await _authService.verifyPasswordResetCode(
+        code: code,
       );
 
       state = const AuthState(
@@ -193,7 +192,7 @@ final class AuthNotifier extends Notifier<AuthState> {
     );
 
     try {
-      await _firebaseAuth.confirmPasswordReset(
+      await _authService.confirmPasswordReset(
         code: code,
         newPassword: newPassword,
       );

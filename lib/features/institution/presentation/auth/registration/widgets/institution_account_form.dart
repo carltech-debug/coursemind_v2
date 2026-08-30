@@ -6,15 +6,32 @@ import 'institution_input_field.dart';
 
 class InstitutionAccountForm extends StatelessWidget {
   const InstitutionAccountForm({
-    required this.selectedInstitutionType, required this.selectedCountry, required this.onInstitutionTypeChanged, required this.onCountryChanged, super.key,
+    required this.selectedInstitutionType,
+    required this.selectedCountry,
+    required this.onInstitutionTypeChanged,
+    required this.onCountryChanged,
+    required this.onInstitutionNameChanged,
+    required this.onWebsiteChanged,
+    required this.onOfficialEmailChanged,
+    super.key,
+    this.institutionNameController,
+    this.websiteController,
+    this.officialEmailController,
   });
 
   final String? selectedInstitutionType;
   final String selectedCountry;
-  final ValueChanged<String?>
-  onInstitutionTypeChanged;
-  final ValueChanged<String?>
-  onCountryChanged;
+
+  final ValueChanged<String?> onInstitutionTypeChanged;
+  final ValueChanged<String?> onCountryChanged;
+
+  final ValueChanged<String>? onInstitutionNameChanged;
+  final ValueChanged<String>? onWebsiteChanged;
+  final ValueChanged<String>? onOfficialEmailChanged;
+
+  final TextEditingController? institutionNameController;
+  final TextEditingController? websiteController;
+  final TextEditingController? officialEmailController;
 
   @override
   Widget build(BuildContext context) {
@@ -25,15 +42,16 @@ class InstitutionAccountForm extends StatelessWidget {
       children: [
         _ResponsiveRow(
           isDesktop: isDesktop,
-          first: const InstitutionInputField(
+          first: InstitutionInputField(
             label: 'Institution name',
             placeholder:
                 "Enter your institution's full name",
             prefixIcon:
                 Icons.account_balance_outlined,
+            controller: institutionNameController,
+            onChanged: onInstitutionNameChanged,
           ),
-          second:
-              InstitutionDropdownField<String>(
+          second: InstitutionDropdownField<String>(
             label: 'Institution type',
             value: selectedInstitutionType,
             hint: 'Select institution type',
@@ -68,8 +86,7 @@ class InstitutionAccountForm extends StatelessWidget {
 
         _ResponsiveRow(
           isDesktop: isDesktop,
-          first:
-              InstitutionDropdownField<String>(
+          first: InstitutionDropdownField<String>(
             label: 'Country',
             value: selectedCountry,
             hint: 'Select country',
@@ -94,13 +111,14 @@ class InstitutionAccountForm extends StatelessWidget {
             ],
             onChanged: onCountryChanged,
           ),
-          second:
-              const InstitutionInputField(
+          second: InstitutionInputField(
             label: 'Institution website',
             placeholder:
                 'https://www.institution.edu',
             prefixIcon: Icons.link,
             keyboardType: TextInputType.url,
+            controller: websiteController,
+            onChanged: onWebsiteChanged,
           ),
         ),
 
@@ -108,7 +126,7 @@ class InstitutionAccountForm extends StatelessWidget {
           height: AppSpacing.md,
         ),
 
-        const InstitutionInputField(
+        InstitutionInputField(
           label: 'Official institution email',
           placeholder:
               'admin@institution.edu',
@@ -117,6 +135,8 @@ class InstitutionAccountForm extends StatelessWidget {
               TextInputType.emailAddress,
           helperText:
               'Use an official institution email where available.',
+          controller: officialEmailController,
+          onChanged: onOfficialEmailChanged,
         ),
       ],
     );

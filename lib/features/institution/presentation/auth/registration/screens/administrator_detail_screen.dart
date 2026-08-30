@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../../app/theme/app_colors.dart';
 import '../../../../../../app/theme/app_spacing.dart';
 import '../../../../../../app/theme/app_text_styles.dart';
 
+import '../providers/institution_registration_provider.dart';
 import '../widgets/institution_dropdown_field.dart';
 import '../widgets/institution_glass_card.dart';
 import '../widgets/institution_glass_circle_button.dart';
@@ -16,7 +18,7 @@ import '../widgets/institution_registration_sidebar.dart';
 import '../widgets/institution_security_notice.dart';
 import 'email_verification_screen.dart';
 
-class AdministratorDetailScreen extends StatefulWidget {
+class AdministratorDetailScreen extends ConsumerStatefulWidget {
   const AdministratorDetailScreen({
     super.key,
     this.onBack,
@@ -27,19 +29,60 @@ class AdministratorDetailScreen extends StatefulWidget {
   final VoidCallback? onContinue;
 
   @override
-  State<AdministratorDetailScreen> createState() =>
+  ConsumerState<AdministratorDetailScreen> createState() =>
       _AdministratorDetailScreenState();
 }
 
 class _AdministratorDetailScreenState
-    extends State<AdministratorDetailScreen> {
-  String? _selectedPosition;
-  String _selectedCountryCode = '+233';
+    extends ConsumerState<AdministratorDetailScreen> {
+  late final TextEditingController _administratorNameController;
+  late final TextEditingController _administratorEmailController;
+  late final TextEditingController _administratorPhoneController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final registrationState =
+        ref.read(institutionRegistrationProvider);
+
+    _administratorNameController =
+        TextEditingController(
+      text: registrationState.administratorFullName,
+    );
+
+    _administratorEmailController =
+        TextEditingController(
+      text: registrationState.administratorEmail,
+    );
+
+    _administratorPhoneController =
+        TextEditingController(
+      text: registrationState.administratorPhone,
+    );
+  }
+
+  @override
+  void dispose() {
+    _administratorNameController.dispose();
+    _administratorEmailController.dispose();
+    _administratorPhoneController.dispose();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
     final isDesktop = width >= 768;
+
+    final registrationState =
+        ref.watch(institutionRegistrationProvider);
+
+    final registrationNotifier =
+        ref.read(
+      institutionRegistrationProvider.notifier,
+    );
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -69,10 +112,9 @@ class _AdministratorDetailScreenState
                         child: Center(
                           child: SingleChildScrollView(
                             padding: EdgeInsets.symmetric(
-                              horizontal:
-                                  isDesktop
-                                      ? AppSpacing.lg
-                                      : AppSpacing.md,
+                              horizontal: isDesktop
+                                  ? AppSpacing.lg
+                                  : AppSpacing.md,
                               vertical: AppSpacing.lg,
                             ),
                             child: ConstrainedBox(
@@ -85,7 +127,8 @@ class _AdministratorDetailScreenState
                                       CrossAxisAlignment.stretch,
                                   children: [
                                     const InstitutionRegistrationHeader(
-                                      icon: Icons.person_outline,
+                                      icon:
+                                          Icons.person_outline,
                                       title:
                                           'Tell us about the administrator',
                                       subtitle:
@@ -102,12 +145,17 @@ class _AdministratorDetailScreenState
                                       height: AppSpacing.xl,
                                     ),
 
-                                    const InstitutionInputField(
+                                    InstitutionInputField(
                                       label: 'Full Name',
                                       placeholder:
                                           'e.g. Dr. Sarah Connor',
                                       prefixIcon:
                                           Icons.person_outline,
+                                      controller:
+                                          _administratorNameController,
+                                      onChanged:
+                                          registrationNotifier
+                                              .updateAdministratorFullName,
                                     ),
 
                                     const SizedBox(
@@ -116,14 +164,24 @@ class _AdministratorDetailScreenState
 
                                     _PositionAndEmailRow(
                                       selectedPosition:
-                                          _selectedPosition,
+                                          registrationState
+                                              .administratorPosition,
                                       onPositionChanged:
                                           (value) {
-                                        setState(() {
-                                          _selectedPosition =
-                                              value;
-                                        });
+                                        if (value == null) {
+                                          return;
+                                        }
+
+                                        registrationNotifier
+                                            .updateAdministratorPosition(
+                                          value,
+                                        );
                                       },
+                                      emailController:
+                                          _administratorEmailController,
+                                      onEmailChanged:
+                                          registrationNotifier
+                                              .updateAdministratorEmail,
                                     ),
 
                                     const SizedBox(
@@ -132,18 +190,24 @@ class _AdministratorDetailScreenState
 
                                     _PhoneNumberField(
                                       selectedCode:
-                                          _selectedCountryCode,
+                                          registrationState
+                                              .administratorCountryCode,
                                       onCodeChanged:
                                           (value) {
                                         if (value == null) {
                                           return;
                                         }
 
-                                        setState(() {
-                                          _selectedCountryCode =
-                                              value;
-                                        });
+                                        registrationNotifier
+                                            .updateAdministratorCountryCode(
+                                          value,
+                                        );
                                       },
+                                      phoneController:
+                                          _administratorPhoneController,
+                                      onPhoneChanged:
+                                          registrationNotifier
+                                              .updateAdministratorPhone,
                                     ),
 
                                     const SizedBox(
@@ -159,15 +223,18 @@ class _AdministratorDetailScreenState
                                       height: AppSpacing.lg,
                                     ),
 
-                                   InstitutionRegistrationActions(
+                                    InstitutionRegistrationActions(
                                       onBack: widget.onBack,
                                       onContinue: () {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (_) => EmailVerificationScreen(
+                                            builder: (_) =>
+                                                EmailVerificationScreen(
                                               onBack: () {
-                                                Navigator.pop(context);
+                                                Navigator.pop(
+                                                  context,
+                                                );
                                               },
                                             ),
                                           ),
@@ -206,16 +273,22 @@ class _PositionAndEmailRow extends StatelessWidget {
   const _PositionAndEmailRow({
     required this.selectedPosition,
     required this.onPositionChanged,
+    required this.emailController,
+    required this.onEmailChanged,
   });
 
   final String? selectedPosition;
   final ValueChanged<String?> onPositionChanged;
+  final TextEditingController emailController;
+  final ValueChanged<String>? onEmailChanged;
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.sizeOf(context).width >= 600;
+    final isDesktop =
+        MediaQuery.sizeOf(context).width >= 600;
 
-    final position = InstitutionDropdownField<String>(
+    final position =
+        InstitutionDropdownField<String>(
       label: 'Position',
       value: selectedPosition,
       hint: 'Select position',
@@ -241,29 +314,37 @@ class _PositionAndEmailRow extends StatelessWidget {
       onChanged: onPositionChanged,
     );
 
-    const email = InstitutionInputField(
+    final email = InstitutionInputField(
       label: 'Official Email',
       placeholder: 'admin@institution.edu',
       prefixIcon: Icons.mail_outline,
-      keyboardType: TextInputType.emailAddress,
+      keyboardType:
+          TextInputType.emailAddress,
+      controller: emailController,
+      onChanged: onEmailChanged,
     );
 
     if (!isDesktop) {
       return Column(
         children: [
           position,
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(
+            height: AppSpacing.md,
+          ),
           email,
         ],
       );
     }
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
       children: [
         Expanded(child: position),
-        const SizedBox(width: AppSpacing.md),
-        const Expanded(child: email),
+        const SizedBox(
+          width: AppSpacing.md,
+        ),
+        Expanded(child: email),
       ],
     );
   }
@@ -273,10 +354,14 @@ class _PhoneNumberField extends StatelessWidget {
   const _PhoneNumberField({
     required this.selectedCode,
     required this.onCodeChanged,
+    required this.phoneController,
+    required this.onPhoneChanged,
   });
 
   final String selectedCode;
   final ValueChanged<String?> onCodeChanged;
+  final TextEditingController phoneController;
+  final ValueChanged<String>? onPhoneChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -286,7 +371,8 @@ class _PhoneNumberField extends StatelessWidget {
       children: [
         Text(
           'Phone Number',
-          style: AppTextStyles.labelMedium.copyWith(
+          style:
+              AppTextStyles.labelMedium.copyWith(
             color: AppColors.onSurface,
             fontWeight: FontWeight.w500,
           ),
@@ -303,7 +389,8 @@ class _PhoneNumberField extends StatelessWidget {
                 label: '',
                 value: selectedCode,
                 hint: '+233',
-                prefixIcon: Icons.phone_outlined,
+                prefixIcon:
+                    Icons.phone_outlined,
                 items: const [
                   DropdownMenuItem(
                     value: '+233',
@@ -324,7 +411,7 @@ class _PhoneNumberField extends StatelessWidget {
             const SizedBox(
               width: AppSpacing.sm,
             ),
-            const Expanded(
+            Expanded(
               child: InstitutionInputField(
                 label: '',
                 placeholder: '244 123 456',
@@ -332,6 +419,8 @@ class _PhoneNumberField extends StatelessWidget {
                     Icons.phone_outlined,
                 keyboardType:
                     TextInputType.phone,
+                controller: phoneController,
+                onChanged: onPhoneChanged,
               ),
             ),
           ],
@@ -341,7 +430,8 @@ class _PhoneNumberField extends StatelessWidget {
   }
 }
 
-class _InstitutionBackground extends StatelessWidget {
+class _InstitutionBackground
+    extends StatelessWidget {
   const _InstitutionBackground();
 
   @override
