@@ -3,6 +3,7 @@ module.exports = {
   env: {
     es6: true,
     node: true,
+    jest: true,
   },
   extends: [
     "eslint:recommended",
@@ -14,17 +15,26 @@ module.exports = {
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {
-    project: ["tsconfig.json", "tsconfig.dev.json"],
-    tsconfigRootDir: __dirname,
+    project: ["tsconfig.json", "tsconfig.test.json"],
     sourceType: "module",
   },
   ignorePatterns: [
-    "/lib/**/*", // Ignore built files.
-    "/generated/**/*", // Ignore generated files.
+    "/lib/**/*",
+    "/generated/**/*",
+    ".eslintrc.js",
+    "jest.config.js",
   ],
   plugins: [
     "@typescript-eslint",
     "import",
+  ],
+  overrides: [
+    {
+      files: ["jest.config.js"],
+      parserOptions: {
+        project: null,
+      },
+    },
   ],
   rules: {
     "quotes": ["error", "double"],
