@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../models/institution_admin_model.dart';
 import '../models/institution_model.dart';
 
 final class InstitutionFirestoreDataSource {
@@ -34,35 +33,6 @@ final class InstitutionFirestoreDataSource {
 
     return InstitutionModel.fromMap(
       snapshot.id,
-      snapshot.data()!,
-    );
-  }
-
-  Future<void> createAdministrator(
-    InstitutionAdminModel administrator,
-  ) async {
-    await _institutions
-        .doc(administrator.institutionId)
-        .collection('administrators')
-        .doc(administrator.userId)
-        .set(administrator.toMap());
-  }
-
-  Future<InstitutionAdminModel?> getAdministrator(
-    String institutionId,
-    String userId,
-  ) async {
-    final snapshot = await _institutions
-        .doc(institutionId)
-        .collection('administrators')
-        .doc(userId)
-        .get();
-
-    if (!snapshot.exists || snapshot.data() == null) {
-      return null;
-    }
-
-    return InstitutionAdminModel.fromMap(
       snapshot.data()!,
     );
   }
