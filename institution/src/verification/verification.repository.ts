@@ -14,6 +14,24 @@ export interface VerificationSessionRepository {
    * @return {Promise<void>} Resolves when the session has been stored.
    */
   create(session: VerificationSession): Promise<void>;
+
+  /**
+   * Retrieves a verification session by its identifier.
+   *
+   * @param {string} sessionId Verification session identifier.
+   * @return {Promise<VerificationSession | null>} Stored session or null.
+   */
+  get(
+    sessionId: string,
+  ): Promise<VerificationSession | null>;
+
+  /**
+   * Updates an existing verification session.
+   *
+   * @param {VerificationSession} session Updated session.
+   * @return {Promise<void>} Resolves when the session has been updated.
+   */
+  update(session: VerificationSession): Promise<void>;
 }
 
 /**
@@ -38,6 +56,36 @@ export function createFirestoreVerificationSessionRepository(
         otpHash: session.otpHash,
         expiresAt: session.expiresAt,
         attempts: session.attempts,
+        resendCount: session.resendCount,
+        lastSentAt: session.lastSentAt,
+        status: session.status,
+      });
+    },
+    async get(sessionId: string): Promise<VerificationSession | null> {
+      const doc = await sessions.doc(sessionId).get();
+      if (!doc.exists) {
+        return null;
+      }
+      const data = doc.data()!;
+      return {
+        sessionId: doc.id,
+        emailHash: data.emailHash,
+        otpHash: data.otpHash,
+        expiresAt: data.expiresAt,
+        attempts: data.attempts,
+        resendCount: data.resendCount,
+        lastSentAt: data.lastSentAt,
+        status: data.status,
+      };
+    },
+    async update(session: VerificationSession): Promise<void> {
+      await sessions.doc(session.sessionId).update({
+        emailHash: session.emailHash,
+        otpHash: session.otpHash,
+        expiresAt: session.expiresAt,
+        attempts: session.attempts,
+        resendCount: session.resendCount,
+        lastSentAt: session.lastSentAt,
         status: session.status,
       });
     },

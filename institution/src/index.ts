@@ -5,11 +5,17 @@ import {
   createGmailVerificationEmailService,
 } from "./verification/email.service";
 import {
+  createResendInstitutionEmailVerification,
+} from "./verification/resend-verification.function";
+import {
   createStartInstitutionEmailVerification,
 } from "./verification/start-verification.function";
 import {
   createFirestoreVerificationSessionRepository,
 } from "./verification/verification.repository";
+import {
+  createVerifyInstitutionEmailCode,
+} from "./verification/verify-code.function";
 
 setGlobalOptions({maxInstances: 10});
 
@@ -25,6 +31,15 @@ const emailService =
 
 export const startInstitutionEmailVerification =
   createStartInstitutionEmailVerification(
+    verificationSessionRepository,
+    emailService,
+  );
+export const verifyInstitutionEmailCode =
+  createVerifyInstitutionEmailCode(
+    verificationSessionRepository,
+  );
+export const resendInstitutionEmailVerification =
+  createResendInstitutionEmailVerification(
     verificationSessionRepository,
     emailService,
   );

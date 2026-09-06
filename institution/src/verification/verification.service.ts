@@ -6,12 +6,22 @@ import {VerificationSessionRepository} from "./verification.repository";
 import {
   StartVerificationRequest,
   StartVerificationResult,
+  ResendVerificationRequest,
+  ResendVerificationResult,
   VerificationSession,
+  VerifyCodeRequest,
+  VerifyCodeResponse,
 } from "./verification.types";
 
 const VERIFICATION_SESSION_DURATION_MS = 10 * 60 * 1000;
+const MAX_VERIFICATION_ATTEMPTS = 5;
+const RESEND_COOLDOWN_MS = 60 * 1000;
 
-export {VERIFICATION_SESSION_DURATION_MS};
+export {
+  MAX_VERIFICATION_ATTEMPTS,
+  RESEND_COOLDOWN_MS,
+  VERIFICATION_SESSION_DURATION_MS,
+};
 
 /**
  * Creates a SHA-256 hash for sensitive verification data.
@@ -77,6 +87,8 @@ export function createVerificationSession(
     otpHash: hashValue(otp),
     expiresAt,
     attempts: 0,
+    resendCount: 0,
+    lastSentAt: now,
     status: "pending",
   };
 
@@ -138,6 +150,161 @@ export async function startVerification(
     response: {
       verificationSessionId: session.sessionId,
       expiresIn: VERIFICATION_SESSION_DURATION_MS / 1_000,
+    },
+    otp,
+  };
+}
+
+/**
+ * Verifies an administrator OTP against a stored verification session.
+ *
+ * The submitted OTP is hashed before comparison and is never persisted.
+ *
+ * @param {VerifyCodeRequest} request Verification request.
+ * @param {VerificationSessionRepository} repository Session repository.
+ * @param {number} now Current time in milliseconds since the Unix epoch.
+ * @return {Promise<VerifyCodeResponse>} Verification result.
+ */
+export async function verifyCode(
+  request: VerifyCodeRequest,
+  repository: VerificationSessionRepository,
+  now: number = Date.now(),
+): Promise<VerifyCodeResponse> {
+  const session = await repository.get(
+    request.verificationSessionId,
+  );
+
+  if (!session) {
+    throw new Error("Verification session not found.");
+  }
+
+  if (session.status !== "pending") {
+    return {
+      verified: session.status === "verified",
+    };
+  }
+
+  if (isVerificationSessionExpired(session, now)) {
+    const expiredSession: VerificationSession = {
+      ...session,
+      status: "expired",
+    };
+
+    await repository.update(expiredSession);
+
+    return {
+      verified: false,
+    };
+  }
+
+  const submittedCodeHash = hashValue(
+    request.code.trim(),
+  );
+
+  if (submittedCodeHash !== session.otpHash) {
+    const attempts = session.attempts + 1;
+    const failedSession: VerificationSession = {
+      ...session,
+      attempts,
+      status: attempts >= MAX_VERIFICATION_ATTEMPTS ?
+        "locked" :
+        "pending",
+    };
+
+    await repository.update(failedSession);
+
+    return {
+      verified: false,
+    };
+  }
+
+  const verifiedSession: VerificationSession = {
+    ...session,
+    status: "verified",
+  };
+
+  await repository.update(verifiedSession);
+
+  return {
+    verified: true,
+  };
+}
+
+/**
+ * Sends a replacement OTP for an existing verification session.
+ *
+ * The supplied email is hashed and compared with the stored email hash before
+ * it is used as the email destination. The email itself is never persisted.
+ *
+ * @param {ResendVerificationRequest} request Resend verification request.
+ * @param {VerificationSessionRepository} repository Session repository.
+ * @param {VerificationEmailService} emailService Email delivery service.
+ * @param {number} now Current time in milliseconds since the Unix epoch.
+ * @return {Promise<ResendVerificationResult>} Public result and email OTP.
+ */
+export async function resendVerification(
+  request: ResendVerificationRequest,
+  repository: VerificationSessionRepository,
+  emailService: VerificationEmailService,
+  now: number = Date.now(),
+): Promise<ResendVerificationResult> {
+  const session = await repository.get(
+    request.verificationSessionId,
+  );
+
+  if (!session) {
+    throw new Error("Verification session not found.");
+  }
+
+  const normalizedEmail = normalizeEmail(request.email);
+  if (!isValidEmail(normalizedEmail) ||
+      hashValue(normalizedEmail) !== session.emailHash) {
+    throw new Error("Verification email does not match the session.");
+  }
+
+  if (session.status !== "pending") {
+    throw new Error("Verification session is not pending.");
+  }
+
+  if (isVerificationSessionExpired(session, now)) {
+    await repository.update({
+      ...session,
+      status: "expired",
+    });
+    throw new Error("Verification session has expired.");
+  }
+
+  const resendAvailableAt = session.lastSentAt +
+    RESEND_COOLDOWN_MS;
+  if (now < resendAvailableAt) {
+    throw new Error("Verification resend is on cooldown.");
+  }
+
+  const otp = generateOtp();
+  const updatedSession: VerificationSession = {
+    ...session,
+    otpHash: hashValue(otp),
+    attempts: 0,
+    resendCount: session.resendCount + 1,
+    lastSentAt: now,
+  };
+
+  await repository.update(updatedSession);
+
+  const expiresIn = Math.ceil(
+    (session.expiresAt - now) / 1_000,
+  );
+  await emailService.sendVerificationCode({
+    recipientEmail: normalizedEmail,
+    otp,
+    expiresIn,
+  });
+
+  return {
+    response: {
+      verificationSessionId: session.sessionId,
+      expiresIn,
+      resendAvailableIn: RESEND_COOLDOWN_MS / 1_000,
     },
     otp,
   };

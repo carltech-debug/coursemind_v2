@@ -4,6 +4,8 @@ export interface VerificationSession {
   readonly otpHash: string;
   readonly expiresAt: number;
   readonly attempts: number;
+  readonly resendCount: number;
+  readonly lastSentAt: number;
   readonly status: "pending" | "verified" | "expired" | "locked";
 }
 
@@ -34,4 +36,20 @@ export interface VerifyCodeRequest {
 
 export interface VerifyCodeResponse {
   readonly verified: boolean;
+}
+
+export interface ResendVerificationRequest {
+  readonly verificationSessionId: string;
+  readonly email: string;
+}
+
+export interface ResendVerificationResponse {
+  readonly verificationSessionId: string;
+  readonly expiresIn: number;
+  readonly resendAvailableIn: number;
+}
+
+export interface ResendVerificationResult {
+  readonly response: ResendVerificationResponse;
+  readonly otp: string;
 }
