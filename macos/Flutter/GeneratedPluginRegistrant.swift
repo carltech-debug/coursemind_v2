@@ -6,6 +6,7 @@ import FlutterMacOS
 import Foundation
 
 import cloud_firestore
+import cloud_functions
 import firebase_ai
 import firebase_analytics
 import firebase_app_check
@@ -15,6 +16,7 @@ import firebase_messaging
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   FLTFirebaseFirestorePlugin.register(with: registry.registrar(forPlugin: "FLTFirebaseFirestorePlugin"))
+  FirebaseFunctionsPlugin.register(with: registry.registrar(forPlugin: "FirebaseFunctionsPlugin"))
   FirebaseAIPlugin.register(with: registry.registrar(forPlugin: "FirebaseAIPlugin"))
   FirebaseAnalyticsPlugin.register(with: registry.registrar(forPlugin: "FirebaseAnalyticsPlugin"))
   FirebaseAppCheckPlugin.register(with: registry.registrar(forPlugin: "FirebaseAppCheckPlugin"))

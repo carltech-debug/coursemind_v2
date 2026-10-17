@@ -45,6 +45,7 @@ dependencies:
   firebase_app_check: ^0.4.6
   flutter_test:
     sdk: flutter
+  cloud_functions: ^6.4.0
 
 dev_dependencies:
   # The "flutter_lints" package below contains a set of recommended lints to

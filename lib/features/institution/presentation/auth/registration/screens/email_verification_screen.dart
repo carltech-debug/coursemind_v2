@@ -1,5 +1,7 @@
 // ignore_for_file: always_put_required_named_parameters_first
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -51,6 +53,10 @@ class _EmailVerificationScreenState
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
+  Timer? _resendTimer;
+  int _resendAvailableIn = 0;
+  bool _isResending = false;
+
   @override
   void initState() {
     super.initState();
@@ -65,13 +71,21 @@ class _EmailVerificationScreenState
     _confirmPasswordController =
         TextEditingController();
 
-    _passwordController.addListener(_handlePasswordChanged);
-    _confirmPasswordController
-        .addListener(_handlePasswordChanged);
+    _passwordController.addListener(
+      _handlePasswordChanged,
+    );
+
+    _confirmPasswordController.addListener(
+      _handlePasswordChanged,
+    );
+
+    _startResendCountdown(60);
   }
 
   @override
   void dispose() {
+    _resendTimer?.cancel();
+
     for (final controller in _otpControllers) {
       controller.dispose();
     }
@@ -86,17 +100,92 @@ class _EmailVerificationScreenState
     super.dispose();
   }
 
+  void _startResendCountdown(int seconds) {
+    _resendTimer?.cancel();
+
+    if (seconds <= 0) {
+      setState(() {
+        _resendAvailableIn = 0;
+      });
+      return;
+    }
+
+    setState(() {
+      _resendAvailableIn = seconds;
+    });
+
+    _resendTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (timer) {
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
+
+        if (_resendAvailableIn <= 1) {
+          timer.cancel();
+
+          setState(() {
+            _resendAvailableIn = 0;
+          });
+
+          return;
+        }
+
+        setState(() {
+          _resendAvailableIn--;
+        });
+      },
+    );
+  }
+
+  Future<void> _handleResend() async {
+    if (_resendAvailableIn > 0 || _isResending) {
+      return;
+    }
+
+    setState(() {
+      _isResending = true;
+    });
+
+    try {
+      final result = await ref
+          .read(
+            institutionRegistrationProvider.notifier,
+          )
+          .resendEmailVerification();
+
+      if (!mounted) {
+        return;
+      }
+
+      _startResendCountdown(
+        result.resendAvailableIn,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isResending = false;
+        });
+      }
+    }
+  }
+
   void _handleOtpChanged(
     int index,
     String value,
   ) {
     if (value.length > 1) {
       final lastCharacter = value.characters.last;
-      _otpControllers[index].text = lastCharacter;
+
+      _otpControllers[index].text =
+          lastCharacter;
+
       _otpControllers[index].selection =
           TextSelection.fromPosition(
         TextPosition(
-          offset: _otpControllers[index].text.length,
+          offset:
+              _otpControllers[index].text.length,
         ),
       );
     }
@@ -114,7 +203,7 @@ class _EmailVerificationScreenState
     }
   }
 
-  void _handleVerification() {
+  Future<void> _handleVerification() async {
     final code = _otpControllers
         .map((controller) => controller.text)
         .join();
@@ -123,9 +212,21 @@ class _EmailVerificationScreenState
       return;
     }
 
-    ref
-        .read(institutionRegistrationProvider.notifier)
-        .setEmailVerified(true);
+    final result = await ref
+        .read(
+          institutionRegistrationProvider.notifier,
+        )
+        .verifyEmailCode(
+          code: code,
+        );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (!result.verified) {
+      return;
+    }
 
     setState(() {
       _showPasswordCard = true;
@@ -136,7 +237,9 @@ class _EmailVerificationScreenState
     final password = _passwordController.text;
 
     ref
-        .read(institutionRegistrationProvider.notifier)
+        .read(
+          institutionRegistrationProvider.notifier,
+        )
         .updatePassword(password);
 
     setState(() {});
@@ -210,16 +313,13 @@ class _EmailVerificationScreenState
           const Positioned.fill(
             child: _InstitutionBackground(),
           ),
-
           SafeArea(
             child: Row(
               children: [
                 if (isDesktop)
-                  InstitutionRegistrationSidebar(
-                    currentStep:
-                        _showPasswordCard ? 3 : 3,
+                  const InstitutionRegistrationSidebar(
+                    currentStep: 3,
                   ),
-
                 Expanded(
                   child: Column(
                     children: [
@@ -227,7 +327,6 @@ class _EmailVerificationScreenState
                         const InstitutionRegistrationMobileHeader(
                           currentStep: 3,
                         ),
-
                       Expanded(
                         child: Center(
                           child: SingleChildScrollView(
@@ -280,7 +379,8 @@ class _EmailVerificationScreenState
                                           Tween<Offset>(
                                         begin:
                                             beginOffset,
-                                        end: Offset.zero,
+                                        end:
+                                            Offset.zero,
                                       ).animate(
                                         animation,
                                       ),
@@ -293,68 +393,77 @@ class _EmailVerificationScreenState
                                     ),
                                   );
                                 },
-                                child: _showPasswordCard
-                                    ? _CreatePasswordCard(
-                                        key: const ValueKey(
-                                          'password',
-                                        ),
-                                        passwordController:
-                                            _passwordController,
-                                        confirmPasswordController:
-                                            _confirmPasswordController,
-                                        obscurePassword:
-                                            _obscurePassword,
-                                        obscureConfirmPassword:
-                                            _obscureConfirmPassword,
-                                        onTogglePassword:
-                                            () {
-                                          setState(() {
-                                            _obscurePassword =
-                                                !_obscurePassword;
-                                          });
-                                        },
-                                        onToggleConfirmPassword:
-                                            () {
-                                          setState(() {
-                                            _obscureConfirmPassword =
-                                                !_obscureConfirmPassword;
-                                          });
-                                        },
-                                        hasMinimumLength:
-                                            _hasMinimumLength,
-                                        hasUppercase:
-                                            _hasUppercase,
-                                        hasLowercase:
-                                            _hasLowercase,
-                                        hasNumber:
-                                            _hasNumber,
-                                        passwordsMatch:
-                                            _passwordsMatch,
-                                        isPasswordValid:
-                                            _isPasswordValid,
-                                        onBack:
-                                            _handleBack,
-                                        onContinue:
-                                            _handlePasswordContinue,
-                                      )
-                                    : _VerifyEmailCard(
-                                        key: const ValueKey(
-                                          'verification',
-                                        ),
-                                        email:
-                                            verificationEmail,
-                                        controllers:
-                                            _otpControllers,
-                                        focusNodes:
-                                            _otpFocusNodes,
-                                        onChanged:
-                                            _handleOtpChanged,
-                                        onBack:
-                                            _handleBack,
-                                        onChangeEmail:
-                                            widget
-                                                .onChangeEmail,
-                                      ),
+                                child:
+                                    _showPasswordCard
+                                        ? _CreatePasswordCard(
+                                            key:
+                                                const ValueKey(
+                                              'password',
+                                            ),
+                                            passwordController:
+                                                _passwordController,
+                                            confirmPasswordController:
+                                                _confirmPasswordController,
+                                            obscurePassword:
+                                                _obscurePassword,
+                                            obscureConfirmPassword:
+                                                _obscureConfirmPassword,
+                                            onTogglePassword:
+                                                () {
+                                              setState(() {
+                                                _obscurePassword =
+                                                    !_obscurePassword;
+                                              });
+                                            },
+                                            onToggleConfirmPassword:
+                                                () {
+                                              setState(() {
+                                                _obscureConfirmPassword =
+                                                    !_obscureConfirmPassword;
+                                              });
+                                            },
+                                            hasMinimumLength:
+                                                _hasMinimumLength,
+                                            hasUppercase:
+                                                _hasUppercase,
+                                            hasLowercase:
+                                                _hasLowercase,
+                                            hasNumber:
+                                                _hasNumber,
+                                            passwordsMatch:
+                                                _passwordsMatch,
+                                            isPasswordValid:
+                                                _isPasswordValid,
+                                            onBack:
+                                                _handleBack,
+                                            onContinue:
+                                                _handlePasswordContinue,
+                                          )
+                                        : _VerifyEmailCard(
+                                            key:
+                                                const ValueKey(
+                                              'verification',
+                                            ),
+                                            email:
+                                                verificationEmail,
+                                            controllers:
+                                                _otpControllers,
+                                            focusNodes:
+                                                _otpFocusNodes,
+                                            onChanged:
+                                                _handleOtpChanged,
+                                            onBack:
+                                                _handleBack,
+                                            onChangeEmail:
+                                                widget
+                                                    .onChangeEmail,
+                                            resendAvailableIn:
+                                                _resendAvailableIn,
+                                            isResending:
+                                                _isResending,
+                                            onResend:
+                                                _handleResend,
+                                          ),
                               ),
                             ),
                           ),
@@ -366,7 +475,6 @@ class _EmailVerificationScreenState
               ],
             ),
           ),
-
           Positioned(
             top: AppSpacing.lg,
             right: AppSpacing.lg,
@@ -389,6 +497,9 @@ class _VerifyEmailCard extends StatelessWidget {
     required this.focusNodes,
     required this.onChanged,
     required this.onBack,
+    required this.resendAvailableIn,
+    required this.isResending,
+    required this.onResend,
     this.onChangeEmail,
   });
 
@@ -398,6 +509,9 @@ class _VerifyEmailCard extends StatelessWidget {
   final void Function(int index, String value) onChanged;
   final VoidCallback? onBack;
   final VoidCallback? onChangeEmail;
+  final int resendAvailableIn;
+  final bool isResending;
+  final VoidCallback onResend;
 
   @override
   Widget build(BuildContext context) {
@@ -415,11 +529,9 @@ class _VerifyEmailCard extends StatelessWidget {
             subtitle:
                 'Enter the verification code sent to your administrator email address.',
           ),
-
           const SizedBox(
             height: AppSpacing.sm,
           ),
-
           Center(
             child: GestureDetector(
               onTap: onChangeEmail,
@@ -433,63 +545,66 @@ class _VerifyEmailCard extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(
             height: AppSpacing.xl,
           ),
-
           _OtpInput(
             controllers: controllers,
             focusNodes: focusNodes,
             onChanged: onChanged,
             isDesktop: isDesktop,
           ),
-
           const SizedBox(
             height: AppSpacing.xl,
           ),
-
           Center(
-            child: RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                style:
-                    AppTextStyles.bodyMedium.copyWith(
-                  color:
-                      AppColors.onSurfaceVariant,
-                ),
-                children: [
-                  const TextSpan(
-                    text:
-                        "Didn't receive the code? ",
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              children: [
+                Text(
+                  "Didn't receive the code? ",
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color:
+                        AppColors.onSurfaceVariant,
                   ),
-                  TextSpan(
-                    text:
-                        'Resend code in 00:45',
+                ),
+                GestureDetector(
+                  onTap: resendAvailableIn == 0 &&
+                          !isResending
+                      ? onResend
+                      : null,
+                  child: Text(
+                    isResending
+                        ? 'Sending...'
+                        : resendAvailableIn > 0
+                            ? 'Resend code in '
+                                '${(resendAvailableIn ~/ 60).toString().padLeft(2, '0')}:'
+                                '${(resendAvailableIn % 60).toString().padLeft(2, '0')}'
+                            : 'Resend code',
                     style:
-                        AppTextStyles.labelMedium
-                            .copyWith(
-                      color: AppColors.primary,
+                        AppTextStyles.labelMedium.copyWith(
+                      color:
+                          resendAvailableIn > 0 ||
+                                  isResending
+                              ? AppColors
+                                  .onSurfaceVariant
+                              : AppColors.primary,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-
           const SizedBox(
             height: AppSpacing.xl,
           ),
-
           const InstitutionSecurityNotice(
             message:
                 'For your security, email verification is required before completing your institution setup.',
           ),
-
           const SizedBox(
             height: AppSpacing.lg,
           ),
-
           InstitutionRegistrationActions(
             onBack: onBack,
             onContinue: null,
@@ -551,11 +666,9 @@ class _CreatePasswordCard extends StatelessWidget {
             subtitle:
                 'Create a secure password for your CourseMind administrator account.',
           ),
-
           const SizedBox(
             height: AppSpacing.xl,
           ),
-
           _PasswordField(
             label: 'Password',
             controller: passwordController,
@@ -563,11 +676,9 @@ class _CreatePasswordCard extends StatelessWidget {
             onToggleVisibility:
                 onTogglePassword,
           ),
-
           const SizedBox(
             height: AppSpacing.md,
           ),
-
           _PasswordField(
             label: 'Confirm password',
             controller:
@@ -577,11 +688,9 @@ class _CreatePasswordCard extends StatelessWidget {
             onToggleVisibility:
                 onToggleConfirmPassword,
           ),
-
           const SizedBox(
             height: AppSpacing.lg,
           ),
-
           Text(
             'Password requirements',
             style:
@@ -590,50 +699,40 @@ class _CreatePasswordCard extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-
           const SizedBox(
             height: AppSpacing.sm,
           ),
-
           _PasswordRequirement(
             text: 'At least 8 characters',
             isSatisfied:
                 hasMinimumLength,
           ),
-
           _PasswordRequirement(
             text: 'One uppercase letter',
             isSatisfied: hasUppercase,
           ),
-
           _PasswordRequirement(
             text: 'One lowercase letter',
             isSatisfied: hasLowercase,
           ),
-
           _PasswordRequirement(
             text: 'One number',
             isSatisfied: hasNumber,
           ),
-
           _PasswordRequirement(
             text: 'Passwords match',
             isSatisfied: passwordsMatch,
           ),
-
           const SizedBox(
             height: AppSpacing.lg,
           ),
-
           const InstitutionSecurityNotice(
             message:
                 'Your password will be used to create your secure CourseMind administrator account.',
           ),
-
           const SizedBox(
             height: AppSpacing.lg,
           ),
-
           InstitutionRegistrationActions(
             onBack: onBack,
             onContinue:
@@ -750,6 +849,7 @@ class _OtpInput extends StatelessWidget {
   Widget build(BuildContext context) {
     final fieldWidth =
         isDesktop ? 56.0 : 48.0;
+
     final fieldHeight =
         isDesktop ? 64.0 : 56.0;
 
